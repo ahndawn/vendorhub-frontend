@@ -1,0 +1,24 @@
+.register-container {
+    background-color: #f0f8ff; /* Light blue background */
+    border-radius: 15px; /* Rounded borders */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    margin-top: 50px; /* Spacing from the top */
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select {
+    border-radius: 5px; /* Rounded borders for inputs and select */
+  }
+  
+  button.btn-primary {
+    background-color: #007bff; /* Bootstrap primary color */
+    border: none;
+    border-radius: 5px; /* Rounded borders for button */
+    padding: 10px 0; /* Padding for button */
+  }
+  
+  h1 {
+    color: #007bff; /* Color to match the theme */
+  }
