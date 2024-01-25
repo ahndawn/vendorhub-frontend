@@ -13,7 +13,7 @@
   .vendor-management .input-group-text {
     background: transparent;
     border: none;
-    margin-right: -1px; /* Align the icon with the input border */
+    margin-right: -8px; /* Align the icon with the input border */
   }
   
   .vendor-management {
@@ -28,7 +28,6 @@
     z-index: 1000;
     background-color: white;
     border: 1px solid #ddd;
-    border-radius: 0.25rem;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   }
   .search-dropdown{
@@ -49,17 +48,13 @@
   .vendor-selection{
     padding: 10px;
     background-color: #f0f8ff;
-    border-radius: 20px;
-    width:fit-content
-  }
-  .input-group-text{
-    background-color: white;
-    border-radius: 10px;
+    width:fit-content;
+    margin-bottom: 20px;
+    border-radius: 10px
   }
 
   .input-group-text{
     background-color: white !important;
-    border-radius: 10px;
     height: 38px;
   }
 

@@ -93,7 +93,7 @@ return (
             </div>
           )}
         </div>
-        <span className="input-group-text" style={{ borderRadius: 'none' }}>
+        <span className="input-group-text">
             <FontAwesomeIcon icon={faCaretDown} />
         </span>
         <select
@@ -110,7 +110,6 @@ return (
           ))}
         </select>
       </div>
-
       {selectedVendor && <VendorHome vendor={selectedVendor} />}
     </div>
   );

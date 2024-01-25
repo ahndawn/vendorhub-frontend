@@ -171,7 +171,7 @@ const renderTable = (data) => {
             <td>{item.timestamp}</td>
             <td>{item.firstname}</td>
             <td>{item.ozip || item.ocity || item.ostate}</td>
-            <td>{item.dzip || item.dstate}</td>
+              <td>{item.dzip || item.dcity + ', ' + item.dstate}</td>
             <td>{item.movesize}</td>
             <td>{item.movedte}</td>
             <td>{item.notes}</td>

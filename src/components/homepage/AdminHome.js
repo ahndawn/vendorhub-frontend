@@ -159,8 +159,8 @@ const prepareLineChartData = (aggregatedData, label) => {
             <th>Timestamp</th>
             <th>Vendor</th>
             <th>Name</th>
-            <th>Origin Zip</th>
-            <th>Destination Zip</th>
+            <th>Origin</th>
+            <th>Destination</th>
             <th>Move Size</th>
             <th>Move Date</th>
             <th>Notes</th>
@@ -172,8 +172,8 @@ const prepareLineChartData = (aggregatedData, label) => {
               <td>{item.timestamp}</td>
               <td>{item.label}</td>
               <td>{item.firstname}</td>
-              <td>{item.ozip}</td>
-              <td>{item.dzip}</td>
+              <td>{item.ozip || item.ocity || item.ostate}</td>
+              <td>{item.dzip || item.dcity + ', ' + item.dstate}</td>
               <td>{item.movesize}</td>
               <td>{item.movedte}</td>
               <td>{item.notes}</td>
