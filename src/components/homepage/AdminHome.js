@@ -4,6 +4,8 @@ import Chart from 'chart.js/auto';
 import './AdminHome.css';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'; 
 import { Pagination } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 
 const AdminHome = () => {
 
@@ -163,7 +165,9 @@ const prepareLineChartData = (aggregatedData, label) => {
             <th>Destination</th>
             <th>Move Size</th>
             <th>Move Date</th>
-            <th>Notes</th>
+            <th>ICID</th>
+            <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -177,6 +181,8 @@ const prepareLineChartData = (aggregatedData, label) => {
               <td>{item.movesize}</td>
               <td>{item.movedte}</td>
               <td>{item.notes}</td>
+              <td>...</td>
+              <td><FontAwesomeIcon icon={faEllipsisV} /></td>
             </tr>
           ))}
         </tbody>

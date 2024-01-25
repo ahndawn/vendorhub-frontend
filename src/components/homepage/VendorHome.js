@@ -3,7 +3,9 @@ import { Pie, Line } from 'react-chartjs-2';
 import Chart from 'chart.js/auto';
 import './VendorHome.css';
 import { AuthContext } from '../../services/AuthContext';
-import { Pagination } from 'react-bootstrap'; 
+import { Pagination } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 
 const VendorHome = ({ vendor }) => {
   const [vendorLeadsData, setVendorLeadsData] = useState([]);
@@ -162,7 +164,9 @@ const renderTable = (data) => {
           <th>Destination</th>
           <th>Move Size</th>
           <th>Move Date</th>
-          <th>Notes</th>
+          <th>ICID</th>
+          <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -175,6 +179,8 @@ const renderTable = (data) => {
             <td>{item.movesize}</td>
             <td>{item.movedte}</td>
             <td>{item.notes}</td>
+            <td>...</td>
+            <td><FontAwesomeIcon icon={faEllipsisV} /></td>
           </tr>
         ))}
       </tbody>
