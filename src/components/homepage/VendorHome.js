@@ -5,7 +5,7 @@ import './VendorHome.css';
 import { AuthContext } from '../../services/AuthContext';
 import { Pagination } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faEllipsisV, faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
 
 const VendorHome = ({ vendor }) => {
   const [vendorLeadsData, setVendorLeadsData] = useState([]);
@@ -25,6 +25,43 @@ const [pieChartData, setPieChartData] = useState({
 // Retrieve and parse user data from local storage
 const userString = localStorage.getItem('user');
 const user = userString ? JSON.parse(userString) : null;
+const [editRowId, setEditRowId] = useState(null);
+const [editableData, setEditableData] = useState({});
+
+// UPDATE handlers for updating information in tables
+const handleEditChange = (e, field) => {
+  setEditableData({ ...editableData, [field]: e.target.value });
+};
+
+const handleEdit = (item) => {
+  setEditRowId(item.id);
+  setEditableData({ ...item });
+};
+
+const handleUpdate = async () => {
+  try {
+    const response = await fetch(`http://localhost:4000/api/vendors/update-lead/${editRowId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}`
+      },
+      body: JSON.stringify(editableData),
+    });
+
+    if (response.ok) {
+      const updatedData = vendorLeadsData.map((item) => 
+        item.id === editRowId ? { ...item, ...editableData } : item
+      );
+      setVendorLeadsData(updatedData);
+      setEditRowId(null);
+    } else {
+      console.error("Failed to update lead");
+    }
+  } catch (error) {
+    console.error("Error updating lead: ", error);
+  }
+};
 
 useEffect(() => {
   const fetchVendorLeads = async () => {
@@ -165,28 +202,92 @@ const renderTable = (data) => {
           <th>Move Size</th>
           <th>Move Date</th>
           <th>ICID</th>
-          <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         {data.map((item, index) => (
           <tr key={index}>
-            <td>{item.timestamp}</td>
-            <td>{item.firstname}</td>
-            <td>{item.ozip || item.ocity || item.ostate}</td>
-              <td>{item.dzip || item.dcity + ', ' + item.dstate}</td>
-            <td>{item.movesize}</td>
-            <td>{item.movedte}</td>
-            <td>{item.notes}</td>
-            <td>...</td>
-            <td><FontAwesomeIcon icon={faEllipsisV} /></td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-};
+              <td>{item.timestamp}</td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.firstname}
+                    onChange={(e) => handleEditChange(e, 'firstname')}
+                  />
+                ) : (
+                  item.firstname
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.ozip || editableData.ocity || editableData.ostate}
+                    onChange={(e) => handleEditChange(e, 'origin')} // Adjust the field name as needed
+                  />
+                ) : (
+                  item.ozip || item.ocity || item.ostate
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.dzip || editableData.dcity + ', ' + editableData.dstate}
+                    onChange={(e) => handleEditChange(e, 'destination')} // Adjust the field name as needed
+                  />
+                ) : (
+                  item.dzip || item.dcity + ', ' + item.dstate
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.movesize}
+                    onChange={(e) => handleEditChange(e, 'movesize')}
+                  />
+                ) : (
+                  item.movesize
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.movedte}
+                    onChange={(e) => handleEditChange(e, 'movedte')}
+                  />
+                ) : (
+                  item.movedte
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.notes}
+                    onChange={(e) => handleEditChange(e, 'notes')}
+                  />
+                ) : (
+                  item.notes
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <FontAwesomeIcon icon={faSave} onClick={handleUpdate} className='icon'/>
+                ) : (
+                  <FontAwesomeIcon icon={faEdit} onClick={() => handleEdit(item)} className='icon'/>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  };
 
 // Pagination logic
 const maxPagesToShow = 5;

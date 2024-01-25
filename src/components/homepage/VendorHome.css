@@ -109,3 +109,13 @@
   .table-hover tbody tr:hover {
     background-color: #d1e7fd; 
   }
+
+  .icon:hover{
+    color: rgb(42, 115, 252);
+  }
+  
+  input{
+    border:rgb(42, 115, 252) solid 1px;
+    text-align: center;
+    width:fit-content
+  }

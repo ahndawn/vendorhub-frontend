@@ -5,7 +5,8 @@ import './AdminHome.css';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'; 
 import { Pagination } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faEllipsisV, faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
+
 
 const AdminHome = () => {
 
@@ -13,6 +14,8 @@ const AdminHome = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [leadsPerPage] = useState(20); 
   const [totalPages, setTotalPages] = useState(0);
+  const [editRowId, setEditRowId] = useState(null);
+  const [editableData, setEditableData] = useState({});
   
   // Function to get today's date in a readable format
   const todaysDate = () => {
@@ -21,6 +24,42 @@ const AdminHome = () => {
       month: 'long', 
       day: 'numeric' 
     });
+  };
+
+  // UPDATE INFORMATION ON TABLE
+  const handleEditChange = (e, field) => {
+    setEditableData({ ...editableData, [field]: e.target.value });
+  };
+
+  const handleEdit = (item) => {
+    setEditRowId(item.id);
+    setEditableData({ ...item });
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const response = await fetch(`http://localhost:4000/api/admin/update-lead/${editRowId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: JSON.stringify(editableData),
+      });
+
+      if (response.ok) {
+        // Update the local state to reflect the changes
+        const updatedData = currentLeadsData.map((item) => 
+          item.id === editRowId ? { ...item, ...editableData } : item
+        );
+        setCurrentLeadsData(updatedData);
+        setEditRowId(null);
+      } else {
+        console.error("Failed to update lead");
+      }
+    } catch (error) {
+      console.error("Error updating lead: ", error);
+    }
   };
 
   // Declare state and setter functions for all your data
@@ -81,7 +120,7 @@ const prepareLineChartData = (aggregatedData, label) => {
    
  
    useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async () => { 
       if (!user || !user.token) {
         console.log('Waiting for user authentication...');
         return;
@@ -153,7 +192,7 @@ const prepareLineChartData = (aggregatedData, label) => {
       console.error('Expected an array for table data, received:', data);
       return <div>No data available.</div>;
     }
-
+  
     return (
       <table className="table table-striped table-hover">
         <thead>
@@ -166,7 +205,6 @@ const prepareLineChartData = (aggregatedData, label) => {
             <th>Move Size</th>
             <th>Move Date</th>
             <th>ICID</th>
-            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -175,14 +213,79 @@ const prepareLineChartData = (aggregatedData, label) => {
             <tr key={index}>
               <td>{item.timestamp}</td>
               <td>{item.label}</td>
-              <td>{item.firstname}</td>
-              <td>{item.ozip || item.ocity || item.ostate}</td>
-              <td>{item.dzip || item.dcity + ', ' + item.dstate}</td>
-              <td>{item.movesize}</td>
-              <td>{item.movedte}</td>
-              <td>{item.notes}</td>
-              <td>...</td>
-              <td><FontAwesomeIcon icon={faEllipsisV} /></td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.firstname}
+                    onChange={(e) => handleEditChange(e, 'firstname')}
+                  />
+                ) : (
+                  item.firstname
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.ozip || editableData.ocity || editableData.ostate}
+                    onChange={(e) => handleEditChange(e, 'origin')} // Adjust the field name as needed
+                  />
+                ) : (
+                  item.ozip || item.ocity || item.ostate
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.dzip || editableData.dcity + ', ' + editableData.dstate}
+                    onChange={(e) => handleEditChange(e, 'destination')} // Adjust the field name as needed
+                  />
+                ) : (
+                  item.dzip || item.dcity + ', ' + item.dstate
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.movesize}
+                    onChange={(e) => handleEditChange(e, 'movesize')}
+                  />
+                ) : (
+                  item.movesize
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.movedte}
+                    onChange={(e) => handleEditChange(e, 'movedte')}
+                  />
+                ) : (
+                  item.movedte
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.notes}
+                    onChange={(e) => handleEditChange(e, 'notes')}
+                  />
+                ) : (
+                  item.notes
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <FontAwesomeIcon icon={faSave} onClick={handleUpdate} className='icon'/>
+                ) : (
+                  <FontAwesomeIcon icon={faEdit} onClick={() => handleEdit(item)} className='icon'/>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
