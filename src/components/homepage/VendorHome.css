@@ -53,6 +53,10 @@
       transform: translateY(-50%);
       z-index: 1000;
     }
+
+    .carousel-control:hover{
+      color: rgb(42, 115, 252);
+    }
     
     .carousel-control.left {
       left: .2vw;
@@ -100,6 +104,8 @@
   .table th {
     background-color: #ffffff; 
     color: #333; 
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600
   }
   
   .table-striped tbody tr:nth-of-type(odd) {
@@ -116,6 +122,11 @@
   
   input{
     border:rgb(42, 115, 252) solid 1px;
-    text-align: center;
     width:fit-content
+  }
+  h2{
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    padding-top:20px;
+    padding-bottom: 10px;
   }

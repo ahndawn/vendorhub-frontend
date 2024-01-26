@@ -18,5 +18,7 @@
   }
   
   h1 {
-    color: #007bff;  
+    color: #007bff;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400  
   }

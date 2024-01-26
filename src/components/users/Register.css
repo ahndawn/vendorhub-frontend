@@ -20,5 +20,7 @@
   }
   
   h1 {
-    color: #007bff; /* Color to match the theme */
+    color: #007bff;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400  
   }
