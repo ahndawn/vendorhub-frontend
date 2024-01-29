@@ -5,28 +5,57 @@ import './VendorHome.css';
 import { AuthContext } from '../../services/AuthContext';
 import { Pagination } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV, faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faEllipsisV, faSave, faEdit, faSearch } from '@fortawesome/free-solid-svg-icons';
 
 const VendorHome = ({ vendor }) => {
   const [vendorLeadsData, setVendorLeadsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
- // Initialize chart data with a proper structure
-const [lineChartData, setLineChartData] = useState({
-  labels: [],
-  datasets: []
-});
-const [pieChartData, setPieChartData] = useState({
-  labels: [],
-  datasets: []
-});
   const [leadsPerPage] = useState(20); // Number of leads per page
+  const [editRowId, setEditRowId] = useState(null);
+  const [editableData, setEditableData] = useState({});
+  const [lineChartData, setLineChartData] = useState({
+    labels: [],
+    datasets: []
+  });
+  const [pieChartData, setPieChartData] = useState({
+    labels: [],
+    datasets: []
+  });
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
+  const [selectedInterval, setSelectedInterval] = useState('daily');
 
+  const [startMonth, setStartMonth] = useState('');  // New state for start month
+  const [endMonth, setEndMonth] = useState('');
+
+
+  // Update start and end month
+const handleMonthChange = (field, value) => {
+  if (field === 'startMonth') {
+    setStartMonth(value);
+  } else {
+    setEndMonth(value);
+  }
+};
+
+  const handleFilter = () => {
+    // Trigger the data fetching based on the selected filters
+    fetchVendorLeads();
+  };
+
+  // Update date range
+const handleDateChange = (field, value) => {
+  setDateRange({ ...dateRange, [field]: value });
+};
+
+// Update interval
+const handleIntervalChange = (value) => {
+  setSelectedInterval(value);
+};
 // Retrieve and parse user data from local storage
 const userString = localStorage.getItem('user');
 const user = userString ? JSON.parse(userString) : null;
-const [editRowId, setEditRowId] = useState(null);
-const [editableData, setEditableData] = useState({});
+
 
 // UPDATE handlers for updating information in tables
 const handleEditChange = (e, field) => {
@@ -63,29 +92,54 @@ const handleUpdate = async () => {
   }
 };
 
+const fetchVendorLeads = async () => {
+  if (!user || !user.token) {
+    console.log('Waiting for user authentication...');
+    setIsLoading(false);
+    return;
+  }
+
+  // Set default values for date range and interval
+  const defaultStartDate = new Date();
+  defaultStartDate.setMonth(defaultStartDate.getMonth() - 5);
+
+  setDateRange({
+    startDate: defaultStartDate.toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+  });
+
+  setSelectedInterval('monthly');
+
+  try {
+    const url = `http://localhost:4000/api/vendors/leads?vendorLabel=${encodeURIComponent(
+      vendor
+    )}&startDate=${defaultStartDate.toISOString().split('T')[0]}&endDate=${new Date().toISOString().split('T')[0]}&interval=monthly`;
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${user.token}` }
+    });
+    const data = await response.json();
+    const sortedData = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    setVendorLeadsData(sortedData);
+  } catch (error) {
+    console.error('Error fetching vendor leads:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 useEffect(() => {
-  const fetchVendorLeads = async () => {
-    if (!user || !user.token) {
-      console.log('Waiting for user authentication...');
-      setIsLoading(false);
-      return;
-    }
+  // Update the default start and end months in the state
+  const defaultStartMonth = new Date();
+  defaultStartMonth.setMonth(defaultStartMonth.getMonth() - 6);
 
-    try {
-      const url = `http://localhost:4000/api/vendors/leads?vendorLabel=${encodeURIComponent(vendor)}`;
-      const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${user.token}` }
-      });
-      const data = await response.json();
-      const sortedData = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      setVendorLeadsData(sortedData);
-    } catch (error) {
-      console.error('Error fetching vendor leads:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const defaultEndMonth = new Date();
 
+  // Set default values for start and end months
+  setStartMonth(defaultStartMonth.toLocaleString('default', { month: 'long' }));
+  setEndMonth(defaultEndMonth.toLocaleString('default', { month: 'long' }));
+}, []);
+
+useEffect(() => {
   fetchVendorLeads();
 }, [vendor]);
 
@@ -93,35 +147,89 @@ useEffect(() => {
   if (vendorLeadsData.length > 0) {
     prepareChartData(vendorLeadsData);
   }
-}, [vendorLeadsData]);
+}, [vendorLeadsData, dateRange, selectedInterval])
 
 const prepareChartData = (data) => {
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  // Check if the interval is daily or monthly
+  const isDaily = selectedInterval === 'daily';
+
   // Get the current date and the past six months
   const currentDate = new Date();
-  const months = [];
-  for (let i = 5; i >= 0; i--) {
-    let d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-    months.push(d.toLocaleString('default', { month: 'long' }));
+  const start = isDaily ? new Date(dateRange.startDate) : new Date(currentDate.getFullYear(), currentDate.getMonth() - 5, 1);
+
+  // Initialize labels and counts based on the selected interval
+  const labels = [];
+  const counts = {};
+
+  // Initialize labels and counts based on the selected interval
+  if (isDaily) {
+    const end = new Date(dateRange.endDate);
+    let currentDate = new Date(start);
+
+    while (currentDate <= end) {
+      labels.push(currentDate.toLocaleDateString('en-US'));
+      counts[currentDate.toLocaleDateString('en-US')] = 0;
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+  } else {
+    // If no date range is selected, use the past 6 months from today
+    const end = new Date();
+
+    // Use selected start and end months if available
+    const selectedStartMonth = startMonth || start.toLocaleString('default', { month: 'long' });
+    const selectedEndMonth = endMonth || end.toLocaleString('default', { month: 'long' });
+
+    for (let i = start.getFullYear(); i <= end.getFullYear(); i++) {
+      for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+        const currentMonth = months[monthIndex];
+        const currentYear = i;
+
+        // If the current date is in the past and before the start month, or in the future and after the end month, skip
+        if (
+          (currentYear === start.getFullYear() && monthIndex < months.indexOf(selectedStartMonth) && currentMonth !== selectedStartMonth) ||
+          (currentYear === end.getFullYear() && monthIndex > months.indexOf(selectedEndMonth) && currentMonth !== selectedEndMonth) ||
+          (currentYear > end.getFullYear() && monthIndex <= months.indexOf(selectedEndMonth) && currentMonth === selectedEndMonth && currentDate.getFullYear() < end.getFullYear())
+        ) {
+          continue;
+        }
+
+        labels.push(`${currentMonth} ${currentYear}`);
+        counts[`${currentMonth} ${currentYear}`] = 0;
+      }
+    }
   }
 
-  // Initialize counts for each month
-  const monthCounts = months.reduce((acc, month) => ({ ...acc, [month]: 0 }), {});
-
-  // Count the number of leads for each month
+  // Count the number of leads for each interval
   data.forEach(lead => {
     const leadDate = new Date(lead.timestamp);
-    const leadMonth = leadDate.toLocaleString('default', { month: 'long' });
-    if (months.includes(leadMonth)) {
-      monthCounts[leadMonth]++;
+
+    if (isDaily) {
+      const leadDateString = leadDate.toLocaleDateString('en-US');
+      if (labels.includes(leadDateString)) {
+        counts[leadDateString]++;
+      }
+    } else {
+      const leadMonth = leadDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+      if (labels.includes(leadMonth)) {
+        counts[leadMonth]++;
+      }
     }
   });
 
+  // Remove labels with zero data
+  const nonZeroLabels = labels.filter(label => counts[label] !== 0);
+
   // Prepare data for Line chart
   const lineChartData = {
-    labels: months,
+    labels: nonZeroLabels,
     datasets: [{
       label: 'Number of Leads',
-      data: months.map(month => monthCounts[month]),
+      data: nonZeroLabels.map(label => counts[label]),
       backgroundColor: 'rgba(54, 162, 235, 0.5)',
       borderColor: 'rgba(54, 162, 235, 1)',
       borderWidth: 2,
@@ -131,10 +239,10 @@ const prepareChartData = (data) => {
 
   // Prepare data for Pie chart
   const pieChartData = {
-    labels: months,
+    labels: nonZeroLabels,
     datasets: [{
-      data: months.map(month => monthCounts[month]),
-      backgroundColor: months.map(() => `rgba(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255}, 0.5)`),
+      data: nonZeroLabels.map(label => counts[label]),
+      backgroundColor: nonZeroLabels.map(() => `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.5)`),
       borderColor: 'rgba(255, 255, 255, 1)',
       borderWidth: 1
     }]
@@ -142,6 +250,11 @@ const prepareChartData = (data) => {
 
   setLineChartData(lineChartData);
   setPieChartData(pieChartData);
+};
+
+const options = {
+  aspectRatio: 2, // Adjust the aspect ratio according to your preference
+  maintainAspectRatio: false, // Set to false to allow the chart to fill its container
 };
   
 
@@ -164,15 +277,91 @@ const paginate = pageNumber => setCurrentPage(pageNumber);
       return <div>Loading chart data...</div>;
     }
   
-    if (lineChartData.datasets.length > 0 && pieChartData.datasets.length > 0) {
+    if (lineChartData.datasets.length > 0) {
+      const pieChartOptions = {
+        plugins: {
+          legend: {
+            display: false, // Hide the legend for the Pie chart
+          },
+        },
+      };
+  
       return (
         <div className="charts-container">
-          <div className="chart-container">
-            <Line data={lineChartData} />
+          <div className="filters-container">
+          <label className='filter-label'>
+            {selectedInterval === 'monthly' ? 'Start Month ' : 'Start Date '}:
+            {selectedInterval === 'monthly' ? (
+              <select value={startMonth} onChange={(e) => handleMonthChange('startMonth', e.target.value)} className='filter-input'>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+              </select>
+            ) : (
+              <input
+                type="date"
+                value={dateRange.startDate}
+                onChange={(e) => handleDateChange('startDate', e.target.value)}
+                className='filter-input'
+              />
+            )}
+          </label>
+          <label className='filter-label'>
+            {selectedInterval === 'monthly' ? 'End Month' :  'End Date '}: 
+            {selectedInterval === 'monthly' ? (
+              <select value={endMonth} onChange={(e) => handleMonthChange('endMonth', e.target.value)} className='filter-input'>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+              </select>
+            ) : (
+              <input
+                type="date"
+                value={dateRange.endDate}
+                onChange={(e) => handleDateChange('endDate', e.target.value)}
+                className='filter-input'
+              />
+            )}
+          </label>
+          <label className='filter-label'>
+            Interval: 
+            <select value={selectedInterval} onChange={(e) => handleIntervalChange(e.target.value)} className='filter-input'>
+              <option value="daily">Daily</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </label>
+          {selectedInterval === 'monthly' && (
+            <button onClick={handleFilter} className='filter-icon-button'>
+            <FontAwesomeIcon icon={faSearch} /> Search
+          </button>
+          )}
+        </div>
+          <div className={`chart-container ${selectedInterval === 'daily' ? 'full-width' : ''}`}>
+          <Line data={lineChartData} options={options} />
           </div>
-          <div className="pie-chart-container">
-            <Pie data={pieChartData} />
-          </div>
+          {selectedInterval !== 'daily' && (
+            <div className="pie-chart-container">
+              <Pie data={pieChartData} options={pieChartOptions} />
+            </div>
+          )};
         </div>
       );
     }
