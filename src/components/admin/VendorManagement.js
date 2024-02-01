@@ -70,8 +70,8 @@ const dropdownRef = useRef(null);
 
 return (
     <div className="vendor-management">
-      <div className="vendor-selection d-flex">
-        <div className="input-group" style={{ width: '300px' }}>
+      <div className="vendor-selection">
+        <div className="input-group">
             <span className="input-group-text">
                 <FontAwesomeIcon icon={faSearch} />
             </span>

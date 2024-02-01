@@ -23,12 +23,14 @@
   .vendor-management .search-dropdown {
     position: absolute;
     top: 100%;
-    left: 0;
+    left: 5px;
     right: 0;
     z-index: 1000;
     background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border: none;
+    border-right: rgb(199, 199, 199) 1px solid;
+    border-left: rgb(199, 199, 199) 1px solid;
+    border-bottom: rgb(199, 199, 199) 1px solid;
   }
   .search-dropdown{
     width: fit-content !important;
@@ -50,7 +52,7 @@
     background-color: #f0f8ff;
     width:fit-content;
     margin-bottom: 20px;
-    border-radius: 10px
+    border-radius: 10px;
   }
 
   .input-group-text{
