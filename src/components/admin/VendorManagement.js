@@ -20,10 +20,14 @@ const VendorManagement = () => {
         const response = await fetch('http://localhost:4000/api/admin/vendors', {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
         const data = await response.json();
         setVendors(data);
       } catch (error) {
         console.error('Error fetching vendors:', error);
+        setVendors([]); // Set vendors to an empty array in case of error
       }
     };
 
@@ -39,9 +43,9 @@ const VendorManagement = () => {
   };
 
 
-const filteredVendors = vendors.filter(vendor =>
+  const filteredVendors = Array.isArray(vendors) ? vendors.filter(vendor =>
     vendor && vendor.toLowerCase().includes(searchTerm.toLowerCase())
-);
+  ) : [];
 
 const showDropdown = searchTerm && filteredVendors.length > 0;
 

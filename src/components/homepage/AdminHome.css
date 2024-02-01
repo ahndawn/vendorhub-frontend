@@ -123,5 +123,5 @@ h2{
 
 input{
   border:rgb(42, 115, 252) solid 1px;
-  width:fit-content
+  max-width:150px
 }

@@ -33,26 +33,69 @@ const AdminHome = () => {
 
   const handleEdit = (item) => {
     setEditRowId(item.id);
-    setEditableData({ ...item });
+    setEditableData({ ...item, isBookedEditable: item.isBooked });
+  };
+
+  const fetchBookedLeads = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/admin/booked-leads', {
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        }
+      });
+      if (response.ok) {
+        const bookedLeads = await response.json();
+        return bookedLeads;
+      } else {
+        console.error('Failed to fetch booked leads');
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching booked leads:', error);
+      return [];
+    }
+  };
+
+  const updateBookedStatusFromSheet = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/admin/update-lead-booked-status', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}` // Assuming you have the user's token
+        }
+      });
+  
+      if (response.ok) {
+        alert('Booked statuses updated successfully!');
+      } else {
+        console.error('Failed to update booked statuses');
+      }
+    } catch (error) {
+      console.error('Error updating booked statuses:', error);
+    }
   };
 
   const handleUpdate = async () => {
     try {
+      const updatedData = { ...editableData, isBooked: editableData.isBookedEditable };
+      delete updatedData.isBookedEditable;
+  
       const response = await fetch(`http://localhost:4000/api/admin/update-lead/${editRowId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user.token}`
         },
-        body: JSON.stringify(editableData),
+        body: JSON.stringify(updatedData),
       });
-
+  
       if (response.ok) {
         // Update the local state to reflect the changes
-        const updatedData = currentLeadsData.map((item) => 
-          item.id === editRowId ? { ...item, ...editableData } : item
+        const updatedLeads = currentLeadsData.map(lead => 
+          lead.id === editRowId ? { ...lead, ...updatedData } : lead
         );
-        setCurrentLeadsData(updatedData);
+        setCurrentLeadsData(updatedLeads);
         setEditRowId(null);
       } else {
         console.error("Failed to update lead");
@@ -119,25 +162,36 @@ const prepareLineChartData = (aggregatedData, label) => {
 
    
  
-   useEffect(() => {
-    const fetchData = async () => { 
-      if (!user || !user.token) {
-        console.log('Waiting for user authentication...');
-        return;
-      }
-  
-      try {
-        const headers = {
-          'Authorization': `Bearer ${user.token}`
-        };
-  
-        // Fetch data based on currentChart
-        const response = await fetch(`http://localhost:4000/api/admin/${currentChart}-leads`, { headers });
-        const data = await response.json();
-        setCurrentLeadsData(data);
-        setTotalPages(Math.ceil(data.length / leadsPerPage));
-  
-        const aggregatedData = aggregateDataByLabel(data);
+useEffect(() => {
+  const fetchData = async () => { 
+    if (!user || !user.token) {
+      console.log('Waiting for user authentication...');
+      return;
+    }
+
+    try {
+      const headers = {
+        'Authorization': `Bearer ${user.token}`
+      };
+
+      // Fetch data based on currentChart
+      const response = await fetch(`http://localhost:4000/api/admin/${currentChart}-leads`, { headers });
+      const data = await response.json();
+
+      // Fetch booked leads
+      const bookedLeads = await fetchBookedLeads();
+      const bookedLeadIds = new Set(bookedLeads.map(lead => lead.leadId));
+
+      // Merge the booked status into the leads data
+      const updatedLeadsData = data.map(lead => ({
+        ...lead,
+        isBooked: bookedLeadIds.has(lead.id)
+      }));
+
+      setCurrentLeadsData(updatedLeadsData);
+      setTotalPages(Math.ceil(updatedLeadsData.length / leadsPerPage));
+
+      const aggregatedData = aggregateDataByLabel(updatedLeadsData);
       const pieChartData = preparePieChartData(aggregatedData);
       const lineChartData = prepareLineChartData(aggregatedData, `${currentChart.charAt(0).toUpperCase() + currentChart.slice(1)} Leads`);
 
@@ -205,6 +259,7 @@ const prepareLineChartData = (aggregatedData, label) => {
             <th>Move Size</th>
             <th>Move Date</th>
             <th>ICID</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -279,6 +334,17 @@ const prepareLineChartData = (aggregatedData, label) => {
                   item.notes
                 )}
               </td>
+              <td style={item.isBooked ? { backgroundColor: '#a8cc98', fontWeight: '600', textAlign: 'center', fontFamily: 'Montserrat, sans-serif' } : {}}>
+                {editRowId === item.id ? (
+                  <input
+                    type="checkbox"
+                    checked={editableData.isBookedEditable}
+                    onChange={(e) => setEditableData({ ...editableData, isBookedEditable: e.target.checked })}
+                  />
+                ) : (
+                  item.isBooked ? 'Booked' : ''
+                )}
+              </td>
               <td>
                 {editRowId === item.id ? (
                   <FontAwesomeIcon icon={faSave} onClick={handleUpdate} className='icon'/>
@@ -339,6 +405,16 @@ const toggleLeadsData = () => {
   setCurrentLeadsData(isExclusive ? todaysSharedLeadsData : todaysExclusiveLeadsData);
 };
 
+const toggleBookedStatus = (leadId) => {
+  const updatedLeads = currentLeadsData.map(lead => {
+    if (lead.id === leadId) {
+      return { ...lead, isBooked: !lead.isBooked };
+    }
+    return lead;
+  });
+  setCurrentLeadsData(updatedLeads);
+};
+
   const exclusiveLeadsLineChartData = prepareLineChartData(todaysExclusiveLeadsData, 'Exclusive Leads', 'rgba(54, 162, 235, 0.5)');
   const sharedLeadsLineChartData = prepareLineChartData(todaysSharedLeadsData, 'Shared Leads', 'rgba(255, 99, 132, 0.5)');
   const exclusiveLeadsPieChartData = preparePieChartData(todaysExclusiveLeadsData);
@@ -371,6 +447,10 @@ const toggleLeadsData = () => {
         <div className="admin-dashboard-wrapper">
           <div className="admin-dashboard">
           <h2>{isExclusive ? "Exclusive" : "Shared"} Leads for {todaysDate()}</h2>
+          
+          <button onClick={updateBookedStatusFromSheet} className="update-booked-status-button">
+            Update Booked Status from Sheet
+          </button>
     
           <div className="charts-carousel">
           {isExclusive && (
