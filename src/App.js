@@ -6,7 +6,7 @@ import Register from './components/users/Register';
 import { AuthProvider } from './services/AuthContext';
 import Login from './components/users/Login';
 import Profile from './components/users/Profile';
-import VendorManagement from './components/admin/VendorManagement';
+import VendorManagement from './components/vendor-management/VendorManagement';
 import AdminHome from './components/homepage/AdminHome';
 import VendorHome from './components/homepage/VendorHome';
 import useUserAuth from './services/userAuth';
