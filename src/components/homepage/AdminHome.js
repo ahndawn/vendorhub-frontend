@@ -62,7 +62,7 @@ const AdminHome = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.token}` // Assuming you have the user's token
+          'Authorization': `Bearer ${user.token}`
         }
       });
   

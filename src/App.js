@@ -9,6 +9,7 @@ import Profile from './components/users/Profile';
 import VendorManagement from './components/vendor-management/VendorManagement';
 import AdminHome from './components/homepage/AdminHome';
 import VendorHome from './components/homepage/VendorHome';
+import BookedLeads from './components/booked-leads/BookedLeads';
 import useUserAuth from './services/userAuth';
 
 const App = () => {
@@ -62,7 +63,8 @@ const MainContent = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
-        <Route path="/vendors" element={<VendorManagement />} />
+        <Route path="/vendors" element={<VendorManagement />}/>
+        <Route path="/booked-deals" element={<BookedLeads />}/>
       </Routes>
     </main>
   );

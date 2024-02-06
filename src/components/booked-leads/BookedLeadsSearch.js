@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import VendorHome from '../homepage/VendorHome';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faCaretDown } from '@fortawesome/free-solid-svg-icons';
-import './VendorManagement.css';
+import './BookedLeadsSearch.css';
+import BookedLeads from './BookedLeads';
 
-const VendorManagement = () => {
+const BookedLeadsSearch = () => {
 
    // Retrieve and parse user data from local storage
    const userString = localStorage.getItem('user');
@@ -114,9 +115,8 @@ return (
           ))}
         </select>
       </div>
-      {selectedVendor && <VendorHome vendor={selectedVendor} />}
     </div>
   );
 };
 
-export default VendorManagement;
+export default BookedLeadsSearch;
