@@ -25,14 +25,20 @@ const BookedLeads = () => {
           return;
       }
 
-      let url = `http://localhost:4000/api/vendors/booked-leads/`;
+      let url = 'http://localhost:4000/api/';
 
     // Adjust URL based on user role and selectedVendor
     if (user.role === 'vendor') {
-      url += encodeURIComponent(user.username);
-    } else if (user.role === 'admin' && selectedVendor) {
-      // Use selectedVendor for admin
-      url += encodeURIComponent(selectedVendor);
+        // For vendors, use their specific booked leads route
+        url += `vendors/booked-leads/${encodeURIComponent(user.username)}`;
+    } else if (user.role === 'admin') {
+        if (selectedVendor) {
+            // For admin, when a vendor is selected, use the vendor-specific booked leads route
+            url += `vendors/booked-leads/${encodeURIComponent(selectedVendor)}`;
+        } else {
+            // For admin, when no vendor is selected, use the admin route to get all booked leads
+            url += 'admin/booked-leads/';
+        }
     }
 
     try {
@@ -105,7 +111,7 @@ const BookedLeads = () => {
     <div className="booked-leads-container">
             {user.role === 'admin' && <VendorSearchBar />}
             <h2>
-              {user.role === 'vendor' ? `${user.username}'s Booked Leads` : `${selectedVendor ? `${selectedVendor}'s Booked Leads` : "Vendor's Booked Leads"}`}
+              {user.role === 'vendor' ? `${user.username}'s Booked Leads` : `${selectedVendor ? `${selectedVendor}'s Booked Leads` : "Booked Leads"}`}
             </h2>
             <div className="tables-container">
             {leads.length > 0 ? (
@@ -113,6 +119,7 @@ const BookedLeads = () => {
           <thead>
             <tr>
               <th>Timestamp</th>
+              {user.role === 'admin' && !selectedVendor && <th>Vendor</th>}
               <th>Name</th>
               <th>Origin</th>
               <th>Destination</th>
@@ -127,6 +134,7 @@ const BookedLeads = () => {
             {currentLeads.map((item, index) => (
               <tr key={index}>
                 <td>{item.timestamp}</td>
+                {user.role === 'admin' && !selectedVendor && <td>{item.label}</td>}
                 <td>
                   {editRowId === item.id ? (
                     <input
