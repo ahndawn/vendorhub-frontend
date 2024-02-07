@@ -1,31 +1,28 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Pie, Line } from 'react-chartjs-2';
 import Chart from 'chart.js/auto';
 import './VendorHome.css';
-import { AuthContext } from '../../services/AuthContext';
 import { Pagination } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisV, faSave, faEdit, faSearch } from '@fortawesome/free-solid-svg-icons';
+import VendorSearchBar from './../vendor-search-bar/VendorSearchBar';
+import { useVendor } from '../../services/VendorContext';
 
-const VendorHome = ({ vendor }) => {
+const VendorHome = () => {
   const [vendorLeadsData, setVendorLeadsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [leadsPerPage] = useState(20); // Number of leads per page
+  const [leadsPerPage] = useState(20);
   const [editRowId, setEditRowId] = useState(null);
   const [editableData, setEditableData] = useState({});
-  const [lineChartData, setLineChartData] = useState({
-    labels: [],
-    datasets: []
-  });
-  const [pieChartData, setPieChartData] = useState({
-    labels: [],
-    datasets: []
-  });
+  const [lineChartData, setLineChartData] = useState({ labels: [], datasets: [] });
+  const [pieChartData, setPieChartData] = useState({ labels: [], datasets: [] });
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
-  const [selectedInterval, setSelectedInterval] = useState('daily');
+  const [selectedInterval, setSelectedInterval] = useState('monthly');
 
-  const [startMonth, setStartMonth] = useState('');  // New state for start month
+  const { selectedVendor } = useVendor(); // Access the selected vendor from context
+
+  const [startMonth, setStartMonth] = useState('');
   const [endMonth, setEndMonth] = useState('');
 
 
@@ -99,27 +96,29 @@ const fetchVendorLeads = async () => {
     return;
   }
 
-  // Set default values for date range and interval
-  const defaultStartDate = new Date();
-  defaultStartDate.setMonth(defaultStartDate.getMonth() - 5);
+  let url = `http://localhost:4000/api/vendors/leads`;
 
-  setDateRange({
-    startDate: defaultStartDate.toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
-  });
+  // Adjust URL based on user role and selectedVendor from context
+  if (user.role === 'vendor') {
+    url += `?vendorLabel=${encodeURIComponent(user.username)}`;
+  } else if (user.role === 'admin' && selectedVendor) {
+    // Use selectedVendor from context
+    url += `?vendorLabel=${encodeURIComponent(selectedVendor)}`;
+  }
 
-  setSelectedInterval('monthly');
+  // Include date range and interval in the query for both admin and vendor
+  const dateQuery = `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}&interval=${selectedInterval}`;
+  url += dateQuery;
 
   try {
-    const url = `http://localhost:4000/api/vendors/leads?vendorLabel=${encodeURIComponent(
-      vendor
-    )}&startDate=${defaultStartDate.toISOString().split('T')[0]}&endDate=${new Date().toISOString().split('T')[0]}&interval=monthly`;
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${user.token}` }
     });
+    if (!response.ok) {
+      throw new Error('Failed to fetch vendor leads');
+    }
     const data = await response.json();
-    const sortedData = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    setVendorLeadsData(sortedData);
+    setVendorLeadsData(data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
   } catch (error) {
     console.error('Error fetching vendor leads:', error);
   } finally {
@@ -141,7 +140,7 @@ useEffect(() => {
 
 useEffect(() => {
   fetchVendorLeads();
-}, [vendor]);
+}, [selectedVendor]);
 
 useEffect(() => {
   if (vendorLeadsData.length > 0) {
@@ -414,7 +413,7 @@ const renderTable = (data) => {
                   <input
                     type="text"
                     value={editableData.ozip || editableData.ocity || editableData.ostate}
-                    onChange={(e) => handleEditChange(e, 'origin')} // Adjust the field name as needed
+                    onChange={(e) => handleEditChange(e, 'origin')}
                   />
                 ) : (
                   item.ozip || item.ocity || item.ostate
@@ -425,7 +424,7 @@ const renderTable = (data) => {
                   <input
                     type="text"
                     value={editableData.dzip || editableData.dcity + ', ' + editableData.dstate}
-                    onChange={(e) => handleEditChange(e, 'destination')} // Adjust the field name as needed
+                    onChange={(e) => handleEditChange(e, 'destination')}
                   />
                 ) : (
                   item.dzip || item.dcity + ', ' + item.dstate
@@ -496,13 +495,10 @@ for (let i = startPage; i <= endPage; i++) {
 return (
   <div className="vendor-dashboard-wrapper">
     <div className="vendor-dashboard">
-        <h2>
-          {user && user.role === 'vendor'
-            ? `${user.username}'s Leads`
-            : vendor
-            ? `${vendor}'s Leads`
-            : "User's Leads"}
-        </h2>
+      {user.role === 'admin' && <VendorSearchBar />}
+      <h2>
+          {user.role === 'vendor' ? `${user.username}'s Leads` : `${selectedVendor ? `${selectedVendor}'s Leads` : "Vendor's Leads"}`}
+      </h2>
       {renderCharts()}
       <div className="tables-container">
         {renderTable(currentLeads)}

@@ -274,6 +274,7 @@ useEffect(() => {
                     type="text"
                     value={editableData.firstname}
                     onChange={(e) => handleEditChange(e, 'firstname')}
+                    className='input'
                   />
                 ) : (
                   item.firstname
@@ -284,7 +285,8 @@ useEffect(() => {
                   <input
                     type="text"
                     value={editableData.ozip || editableData.ocity || editableData.ostate}
-                    onChange={(e) => handleEditChange(e, 'origin')} // Adjust the field name as needed
+                    onChange={(e) => handleEditChange(e, 'origin')}
+                    className='input'
                   />
                 ) : (
                   item.ozip || item.ocity || item.ostate
@@ -295,7 +297,8 @@ useEffect(() => {
                   <input
                     type="text"
                     value={editableData.dzip || editableData.dcity + ', ' + editableData.dstate}
-                    onChange={(e) => handleEditChange(e, 'destination')} // Adjust the field name as needed
+                    onChange={(e) => handleEditChange(e, 'destination')}
+                    className='input'
                   />
                 ) : (
                   item.dzip || item.dcity + ', ' + item.dstate
@@ -307,6 +310,7 @@ useEffect(() => {
                     type="text"
                     value={editableData.movesize}
                     onChange={(e) => handleEditChange(e, 'movesize')}
+                    className='input'
                   />
                 ) : (
                   item.movesize
@@ -318,6 +322,7 @@ useEffect(() => {
                     type="text"
                     value={editableData.movedte}
                     onChange={(e) => handleEditChange(e, 'movedte')}
+                    className='input'
                   />
                 ) : (
                   item.movedte
@@ -329,6 +334,7 @@ useEffect(() => {
                     type="text"
                     value={editableData.notes}
                     onChange={(e) => handleEditChange(e, 'notes')}
+                    className='input'
                   />
                 ) : (
                   item.notes
@@ -340,6 +346,7 @@ useEffect(() => {
                     type="checkbox"
                     checked={editableData.isBookedEditable}
                     onChange={(e) => setEditableData({ ...editableData, isBookedEditable: e.target.checked })}
+                    className='input'
                   />
                 ) : (
                   item.isBooked ? 'Booked' : ''

@@ -121,7 +121,7 @@ h2{
   color: rgb(42, 115, 252);
 }
 
-input{
+.input{
   border:rgb(42, 115, 252) solid 1px;
   max-width:150px
 }

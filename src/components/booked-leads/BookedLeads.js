@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Pagination } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faSave } from '@fortawesome/free-solid-svg-icons';
-import BookedLeadsSearch from './BookedLeadsSearch';
+import VendorSearchBar from './../vendor-search-bar/VendorSearchBar';
+import { useVendor } from '../../services/VendorContext'
 import './BookedLeads.css'
 
 const BookedLeads = () => {
@@ -16,6 +17,8 @@ const BookedLeads = () => {
   const [editRowId, setEditRowId] = useState(null);
   const [editableData, setEditableData] = useState({});
 
+  const { selectedVendor } = useVendor(); // Access the selected vendor from context
+
   const fetchBookedLeads = async () => {
       if (!user || !user.token) {
           console.log('Waiting for user authentication...');
@@ -23,30 +26,34 @@ const BookedLeads = () => {
       }
 
       let url = `http://localhost:4000/api/vendors/booked-leads/`;
-      // If the user is a vendor, append their username to the URL
-      if (user.role === 'vendor') {
-          url += encodeURIComponent(user.username);
-      }
 
-      try {
-          const response = await fetch(url, {
-              headers: {
-                  'Authorization': `Bearer ${user.token}`,
-              },
-          });
-          if (!response.ok) {
-              throw new Error('Failed to fetch booked leads');
-          }
-          const data = await response.json();
-          setLeads(data);
-      } catch (error) {
-          console.error('Error:', error);
+    // Adjust URL based on user role and selectedVendor
+    if (user.role === 'vendor') {
+      url += encodeURIComponent(user.username);
+    } else if (user.role === 'admin' && selectedVendor) {
+      // Use selectedVendor for admin
+      url += encodeURIComponent(selectedVendor);
+    }
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch booked leads');
       }
+      const data = await response.json();
+      setLeads(data);
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   useEffect(() => {
-      fetchBookedLeads();
-  }, []);
+    fetchBookedLeads();
+  }, [selectedVendor]);
 
   const handleEditChange = (e, field) => {
     setEditableData({ ...editableData, [field]: e.target.value });
@@ -96,14 +103,16 @@ const BookedLeads = () => {
 
   return (
     <div className="booked-leads-container">
-            {user.role === 'admin' && <BookedLeadsSearch />}
+            {user.role === 'admin' && <VendorSearchBar />}
+            <h2>
+              {user.role === 'vendor' ? `${user.username}'s Booked Leads` : `${selectedVendor ? `${selectedVendor}'s Booked Leads` : "Vendor's Booked Leads"}`}
+            </h2>
             <div className="tables-container">
             {leads.length > 0 ? (
                 <table className="table table-striped table-hover">
           <thead>
             <tr>
               <th>Timestamp</th>
-              <th>Vendor</th>
               <th>Name</th>
               <th>Origin</th>
               <th>Destination</th>
@@ -118,13 +127,13 @@ const BookedLeads = () => {
             {currentLeads.map((item, index) => (
               <tr key={index}>
                 <td>{item.timestamp}</td>
-                <td>{item.label}</td>
                 <td>
                   {editRowId === item.id ? (
                     <input
                       type="text"
                       value={editableData.firstname}
                       onChange={(e) => handleEditChange(e, 'firstname')}
+                      className='input'
                     />
                   ) : (
                     item.firstname
@@ -135,7 +144,8 @@ const BookedLeads = () => {
                     <input
                       type="text"
                       value={editableData.ozip || editableData.ocity || editableData.ostate}
-                      onChange={(e) => handleEditChange(e, 'origin')} // Adjust the field name as needed
+                      onChange={(e) => handleEditChange(e, 'origin')}
+                      className='input'
                     />
                   ) : (
                     item.ozip || item.ocity || item.ostate
@@ -146,7 +156,8 @@ const BookedLeads = () => {
                     <input
                       type="text"
                       value={editableData.dzip || editableData.dcity + ', ' + editableData.dstate}
-                      onChange={(e) => handleEditChange(e, 'destination')} // Adjust the field name as needed
+                      onChange={(e) => handleEditChange(e, 'destination')}
+                      className='input'
                     />
                   ) : (
                     item.dzip || item.dcity + ', ' + item.dstate
@@ -158,6 +169,7 @@ const BookedLeads = () => {
                       type="text"
                       value={editableData.movesize}
                       onChange={(e) => handleEditChange(e, 'movesize')}
+                      className='input'
                     />
                   ) : (
                     item.movesize
@@ -169,6 +181,7 @@ const BookedLeads = () => {
                       type="text"
                       value={editableData.movedte}
                       onChange={(e) => handleEditChange(e, 'movedte')}
+                      className='input'
                     />
                   ) : (
                     item.movedte
@@ -180,6 +193,7 @@ const BookedLeads = () => {
                       type="text"
                       value={editableData.notes}
                       onChange={(e) => handleEditChange(e, 'notes')}
+                      className='input'
                     />
                   ) : (
                     item.notes
