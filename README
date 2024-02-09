@@ -6,3 +6,4 @@ Deploying the application using Docker
 Running the commands above will build and launch the app on a port if for some reason changes made are not updated you can run the above commands by using the flag " sudo docker build -t vendor-hub-frontend . --no-cache
 
  "
+ To run a specific port you can run sudo docker run -it -p 3000:3000 vendor-hub-frontend

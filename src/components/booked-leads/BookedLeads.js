@@ -25,6 +25,11 @@ const BookedLeads = () => {
           return;
       }
 
+      // TODO use an env variable for all routes 
+      // api route route / for example http://localhost:4000
+      apiRoute = process.env.API_ROUTE 
+
+
       let url = 'http://localhost:4000/api/';
 
     // Adjust URL based on user role and selectedVendor
