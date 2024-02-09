@@ -66,7 +66,7 @@ const handleEdit = (item) => {
 
 const handleUpdate = async () => {
   try {
-    const response = await fetch(`https://vendor.safeshiphub.com/api/vendors/update-lead/${editRowId}`, {
+    const response = await fetch(`https://vendor-api.safeshiphub.com/api/vendors/update-lead/${editRowId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ const fetchVendorLeads = async () => {
     return;
   }
 
-  let url = `https://vendor.safeshiphub.com/api/vendors/leads`;
+  let url = `https://vendor-api.safeshiphub.com/api/vendors/leads`;
 
   // Adjust URL based on user role and selectedVendor from context
   if (user.role === 'vendor') {
