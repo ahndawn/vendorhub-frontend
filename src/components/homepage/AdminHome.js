@@ -38,7 +38,7 @@ const AdminHome = () => {
 
   const fetchBookedLeads = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/admin/booked-leads', {
+      const response = await fetch('https://vendor-api.safeshiphub.com/api/admin/booked-leads', {
         headers: {
           'Authorization': `Bearer ${user.token}`
         }
@@ -58,7 +58,7 @@ const AdminHome = () => {
 
   const updateBookedStatusFromSheet = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/admin/update-lead-booked-status', {
+      const response = await fetch('https://vendor-api.safeshiphub.com/api/admin/update-lead-booked-status', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ const AdminHome = () => {
       const updatedData = { ...editableData, isBooked: editableData.isBookedEditable };
       delete updatedData.isBookedEditable;
   
-      const response = await fetch(`http://localhost:4000/api/admin/update-lead/${editRowId}`, {
+      const response = await fetch(`https://vendor-api.safeshiphub.com/api/admin/update-lead/${editRowId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ useEffect(() => {
       };
 
       // Fetch data based on currentChart
-      const response = await fetch(`http://localhost:4000/api/admin/${currentChart}-leads`, { headers });
+      const response = await fetch(`https://vendor-api.safeshiphub.com/api/admin/${currentChart}-leads`, { headers });
       const data = await response.json();
 
       // Fetch booked leads
