@@ -17,7 +17,7 @@ const VendorSearchBar = () => {
   useEffect(() => {
     const fetchVendors = async () => {
       try {
-        const response = await fetch('http://localhost:4000/api/admin/vendors', {
+        const response = await fetch('https://vendor.safeshiphub.com/api/admin/vendors', {
           headers: { 'Authorization': `Bearer ${user.token}` },
         });
         if (!response.ok) {
