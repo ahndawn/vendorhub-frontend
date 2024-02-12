@@ -183,12 +183,12 @@ useEffect(() => {
         'Authorization': `Bearer ${user.token}`
       };
 
-      // Fetch leads data, which now includes the isBooked status
-      const leadsResponse = await fetch(`http://localhost:4000/api/admin/${currentChart}-leads`, { headers });
-      const leadsData = await leadsResponse.json();
+  
+      // const leadsResponse = await fetch(`http://localhost:4000/api/admin/${currentChart}-leads`, { headers });
+      // const leadsData = await leadsResponse.json();
 
-      // const response = await fetch(`https://vendor-api.safeshiphub.com/api/admin/${currentChart}-leads`, { headers });
-      // const data = await response.json();
+      const response = await fetch(`https://vendor-api.safeshiphub.com/api/admin/${currentChart}-leads`, { headers });
+      const data = await response.json();
 
       setCurrentLeadsData(leadsData);
       setTotalPages(Math.ceil(leadsData.length / leadsPerPage));
