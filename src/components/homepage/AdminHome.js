@@ -5,7 +5,8 @@ import './AdminHome.css';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'; 
 import { Pagination } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV, faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { MdImportExport } from 'react-icons/md';
 
 
 const AdminHome = () => {
@@ -73,6 +74,14 @@ const AdminHome = () => {
       }
     } catch (error) {
       console.error('Error updating booked statuses:', error);
+    }
+  };
+
+  // Function to handle importing booked leads with confirmation
+  const handleImportBookedLeads = async () => {
+    const isConfirmed = window.confirm("Are you sure you want to import booked leads?");
+    if (isConfirmed) {
+      await updateBookedStatusFromSheet();
     }
   };
 
@@ -174,24 +183,14 @@ useEffect(() => {
         'Authorization': `Bearer ${user.token}`
       };
 
-      // Fetch data based on currentChart
-      const response = await fetch(`http://localhost:4000/api/admin/${currentChart}-leads`, { headers });
-      const data = await response.json();
+      // Fetch leads data, which now includes the isBooked status
+      const leadsResponse = await fetch(`http://localhost:4000/api/admin/${currentChart}-leads`, { headers });
+      const leadsData = await leadsResponse.json();
 
-      // Fetch booked leads
-      const bookedLeads = await fetchBookedLeads();
-      const bookedLeadIds = new Set(bookedLeads.map(lead => lead.leadId));
+      setCurrentLeadsData(leadsData);
+      setTotalPages(Math.ceil(leadsData.length / leadsPerPage));
 
-      // Merge the booked status into the leads data
-      const updatedLeadsData = data.map(lead => ({
-        ...lead,
-        isBooked: bookedLeadIds.has(lead.id)
-      }));
-
-      setCurrentLeadsData(updatedLeadsData);
-      setTotalPages(Math.ceil(updatedLeadsData.length / leadsPerPage));
-
-      const aggregatedData = aggregateDataByLabel(updatedLeadsData);
+      const aggregatedData = aggregateDataByLabel(leadsData);
       const pieChartData = preparePieChartData(aggregatedData);
       const lineChartData = prepareLineChartData(aggregatedData, `${currentChart.charAt(0).toUpperCase() + currentChart.slice(1)} Leads`);
 
@@ -259,7 +258,7 @@ useEffect(() => {
             <th>Move Size</th>
             <th>Move Date</th>
             <th>ICID</th>
-            <th>Status</th>
+            <th>Status <MdImportExport onClick={handleImportBookedLeads} style={{ cursor: 'pointer', color: 'rgb(42, 115, 252)'}} title='Import Booked Leads'/></th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -454,10 +453,6 @@ const toggleBookedStatus = (leadId) => {
         <div className="admin-dashboard-wrapper">
           <div className="admin-dashboard">
           <h2>{isExclusive ? "Exclusive" : "Shared"} Leads for {todaysDate()}</h2>
-          
-          <button onClick={updateBookedStatusFromSheet} className="update-booked-status-button">
-            Update Booked Status from Sheet
-          </button>
     
           <div className="charts-carousel">
           {isExclusive && (
