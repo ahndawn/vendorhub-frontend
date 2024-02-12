@@ -25,7 +25,12 @@ const BookedLeads = () => {
           return;
       }
 
-      let url = 'http://localhost:4000/api/';
+      // TODO use an env variable for all routes 
+      // api route route / for example https://vendor-api.safeshiphub.com
+      apiRoute = process.env.API_ROUTE 
+
+
+      let url = 'https://vendor-api.safeshiphub.com/api/';
 
     // Adjust URL based on user role and selectedVendor
     if (user.role === 'vendor') {
@@ -75,7 +80,7 @@ const BookedLeads = () => {
       const updatedData = { ...editableData, isBooked: editableData.isBookedEditable };
       delete updatedData.isBookedEditable;
   
-      const response = await fetch(`http://localhost:4000/api/admin/update-lead/${editRowId}`, {
+      const response = await fetch(`https://vendor-api.safeshiphub.com/api/admin/update-lead/${editRowId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
