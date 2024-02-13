@@ -1,62 +1,68 @@
-/* Sidebar.css */
 .sidebar {
-    position: fixed; /* Fixed position */
-    top: 0; /* Start from the top of the page */
-    bottom: 0; /* Stretch to the bottom of the page */
-    left: 0; /* Align to the left side */
-    z-index: 100; /* Make sure it sits on top of other content */
-    padding: 48px 0 0; /* Padding from the top */
-    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1); /* Optional: adds a shadow line to the right of the sidebar */
-    background-color: #f8f9fa;
-  }
-  .nav-link {
-    color: #007bff; /* Bootstrap primary color */
-    margin: 5px 0;
-  }
+  position: fixed; /* Fixed position */
+  top: 0; /* Start from the top of the page */
+  bottom: 0; /* Stretch to the bottom of the page */
+  left: 0; /* Align to the left side */
+  z-index: 100; /* Make sure it sits on top of other content */
+  padding: 48px 10px 0; /* Padding from the top */
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1); /* Optional: adds a shadow line to the right of the sidebar */
+  background-color: #f8f9fa;
+}
+.nav-link {
+  color: #007bff;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  margin: 5px 0;
+}
 
-  .nav-link:hover {
-    color: #003a77; 
-    text-shadow: #c4c4c4 1px 1px/* Darker shade for hover effect */
-  }
-  
-  .nav-link i {
-    margin-right: 10px; /* Space between icon and text */
-  }
-  
-  /* Adjust the main content area so it doesn't overlap with the sidebar */
-  .main-content {
-    margin-left: 200px; /* Adjust this value based on the width of your sidebar */
-  }
-  .highlighted {
-    background-color: #e4eef6; /* Highlight color for active dropdown */
-  }
-  
-  .dropdown-menu {
-    list-style: none;
-    padding-left: 30px; /* Indent dropdown items */
-    display: none; /* Initially hidden */
-    position: static;
-    background-color: transparent; 
-    border: none;/* Ensure normal document flow */
-  }
-  
-  .nav-item .highlighted + .dropdown-menu.show {
-    display: block; /* Show dropdown */
-  }
-  
-  .dropdown-menu li a {
-    color: #007bff;
-    text-decoration: none; /* Spacing for dropdown items */
-  }
+.nav-link:hover {
+  color: #003a77; 
+  text-shadow: #c4c4c4 1px 1px/* Darker shade for hover effect */
+}
 
-  .dropdown-menu li a:hover {
-    color: #003a77; 
-    text-shadow: #c4c4c4 1px 1px/* Darker shade for hover effect */
+.nav-link i {
+  margin-right: 10px; /* Space between icon and text */
+}
+
+/* Adjust the main content area so it doesn't overlap with the sidebar */
+.main-content {
+  margin-left: 260px; /* Adjust this value based on the width of your sidebar */
+}
+.highlighted {
+  background-color: #e4eef6; /* Highlight color for active dropdown */
+}
+
+.dropdown-menu {
+  list-style: none;
+  padding-left: 31px; /* Indent dropdown items */
+  display: none; /* Initially hidden */
+  position: static;
+  background-color: transparent; 
+  border: none;/* Ensure normal document flow */
+  border-left: #7fafee solid 1px;
+  border-radius: 0px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+  margin-left: 17px;
+}
+
+.nav-item .highlighted + .dropdown-menu.show {
+  display: block; /* Show dropdown */
+}
+
+.dropdown-menu li a {
+  color: #007bff;
+  text-decoration: none; /* Spacing for dropdown items */
+}
+
+.dropdown-menu li a:hover {
+  color: #003a77; 
+  text-shadow: #c4c4c4 1px 1px/* Darker shade for hover effect */
+}
+
+/* Optional: Adjust the width of the sidebar */
+@media (min-width: 768px) {
+  .sidebar {
+    width: 260px; /* Set the width of the sidebar */
   }
-  
-  /* Optional: Adjust the width of the sidebar */
-  @media (min-width: 768px) {
-    .sidebar {
-      width: 200px; /* Set the width of the sidebar */
-    }
-  }
+}

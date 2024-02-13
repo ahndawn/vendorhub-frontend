@@ -4,24 +4,27 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Sidebar from './components/sidebar/Sidebar';
 import Register from './components/users/Register';
 import { AuthProvider } from './services/AuthContext';
+import { VendorProvider } from './services/VendorContext';
 import Login from './components/users/Login';
 import Profile from './components/users/Profile';
-import VendorManagement from './components/admin/VendorManagement';
 import AdminHome from './components/homepage/AdminHome';
 import VendorHome from './components/homepage/VendorHome';
+import BookedLeads from './components/booked-leads/BookedLeads';
 import useUserAuth from './services/userAuth';
 
 const App = () => {
   return (
     <AuthProvider>
-      <Router>
-        <div className="container-fluid">
-          <div className="row">
-            <Sidebar />
-            <MainContent />
+      <VendorProvider>
+        <Router>
+          <div className="container-fluid">
+            <div className="row">
+              <Sidebar />
+              <MainContent />
+            </div>
           </div>
-        </div>
-      </Router>
+        </Router>
+      </VendorProvider>
     </AuthProvider>
   );
 };
@@ -62,7 +65,8 @@ const MainContent = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
-        <Route path="/vendors" element={<VendorManagement />} />
+        <Route path="/vendors" element={<VendorHome />}/>
+        <Route path="/booked-deals" element={<BookedLeads />}/>
       </Routes>
     </main>
   );
