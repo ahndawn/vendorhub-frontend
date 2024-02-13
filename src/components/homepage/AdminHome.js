@@ -4,6 +4,10 @@ import Chart from 'chart.js/auto';
 import './AdminHome.css';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'; 
 import { Pagination } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { MdImportExport } from 'react-icons/md';
+
 
 const AdminHome = () => {
 
@@ -11,6 +15,8 @@ const AdminHome = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [leadsPerPage] = useState(20); 
   const [totalPages, setTotalPages] = useState(0);
+  const [editRowId, setEditRowId] = useState(null);
+  const [editableData, setEditableData] = useState({});
   
   // Function to get today's date in a readable format
   const todaysDate = () => {
@@ -19,6 +25,93 @@ const AdminHome = () => {
       month: 'long', 
       day: 'numeric' 
     });
+  };
+
+  // UPDATE INFORMATION ON TABLE
+  const handleEditChange = (e, field) => {
+    setEditableData({ ...editableData, [field]: e.target.value });
+  };
+
+  const handleEdit = (item) => {
+    setEditRowId(item.id);
+    setEditableData({ ...item, isBookedEditable: item.isBooked });
+  };
+
+  const fetchBookedLeads = async () => {
+    try {
+      const response = await fetch('https://vendor-api.safeshiphub.com/api/admin/booked-leads', {
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        }
+      });
+      if (response.ok) {
+        const bookedLeads = await response.json();
+        return bookedLeads;
+      } else {
+        console.error('Failed to fetch booked leads');
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching booked leads:', error);
+      return [];
+    }
+  };
+
+  const updateBookedStatusFromSheet = async () => {
+    try {
+      const response = await fetch('https://vendor-api.safeshiphub.com/api/admin/update-lead-booked-status', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
+        }
+      });
+  
+      if (response.ok) {
+        alert('Booked statuses updated successfully!');
+      } else {
+        console.error('Failed to update booked statuses');
+      }
+    } catch (error) {
+      console.error('Error updating booked statuses:', error);
+    }
+  };
+
+  // Function to handle importing booked leads with confirmation
+  const handleImportBookedLeads = async () => {
+    const isConfirmed = window.confirm("Are you sure you want to import booked leads?");
+    if (isConfirmed) {
+      await updateBookedStatusFromSheet();
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const updatedData = { ...editableData, isBooked: editableData.isBookedEditable };
+      delete updatedData.isBookedEditable;
+  
+      const response = await fetch(`https://vendor-api.safeshiphub.com/api/admin/update-lead/${editRowId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: JSON.stringify(updatedData),
+      });
+  
+      if (response.ok) {
+        // Update the local state to reflect the changes
+        const updatedLeads = currentLeadsData.map(lead => 
+          lead.id === editRowId ? { ...lead, ...updatedData } : lead
+        );
+        setCurrentLeadsData(updatedLeads);
+        setEditRowId(null);
+      } else {
+        console.error("Failed to update lead");
+      }
+    } catch (error) {
+      console.error("Error updating lead: ", error);
+    }
   };
 
   // Declare state and setter functions for all your data
@@ -78,25 +171,29 @@ const prepareLineChartData = (aggregatedData, label) => {
 
    
  
-   useEffect(() => {
-    const fetchData = async () => {
-      if (!user || !user.token) {
-        console.log('Waiting for user authentication...');
-        return;
-      }
+useEffect(() => {
+  const fetchData = async () => { 
+    if (!user || !user.token) {
+      console.log('Waiting for user authentication...');
+      return;
+    }
+
+    try {
+      const headers = {
+        'Authorization': `Bearer ${user.token}`
+      };
+
   
-      try {
-        const headers = {
-          'Authorization': `Bearer ${user.token}`
-        };
-  
-        // Fetch data based on currentChart
-        const response = await fetch(`http://localhost:4000/api/admin/${currentChart}-leads`, { headers });
-        const data = await response.json();
-        setCurrentLeadsData(data);
-        setTotalPages(Math.ceil(data.length / leadsPerPage));
-  
-        const aggregatedData = aggregateDataByLabel(data);
+      // const leadsResponse = await fetch(`http://localhost:4000/api/admin/${currentChart}-leads`, { headers });
+      // const leadsData = await leadsResponse.json();
+
+      const response = await fetch(`https://vendor-api.safeshiphub.com/api/admin/${currentChart}-leads`, { headers });
+      const data = await response.json();
+
+      setCurrentLeadsData(leadsData);
+      setTotalPages(Math.ceil(leadsData.length / leadsPerPage));
+
+      const aggregatedData = aggregateDataByLabel(leadsData);
       const pieChartData = preparePieChartData(aggregatedData);
       const lineChartData = prepareLineChartData(aggregatedData, `${currentChart.charAt(0).toUpperCase() + currentChart.slice(1)} Leads`);
 
@@ -151,7 +248,7 @@ const prepareLineChartData = (aggregatedData, label) => {
       console.error('Expected an array for table data, received:', data);
       return <div>No data available.</div>;
     }
-
+  
     return (
       <table className="table table-striped table-hover">
         <thead>
@@ -159,11 +256,13 @@ const prepareLineChartData = (aggregatedData, label) => {
             <th>Timestamp</th>
             <th>Vendor</th>
             <th>Name</th>
-            <th>Origin Zip</th>
-            <th>Destination Zip</th>
+            <th>Origin</th>
+            <th>Destination</th>
             <th>Move Size</th>
             <th>Move Date</th>
-            <th>Notes</th>
+            <th>ICID</th>
+            <th>Status <MdImportExport onClick={handleImportBookedLeads} style={{ cursor: 'pointer', color: 'rgb(42, 115, 252)'}} title='Import Booked Leads'/></th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -171,12 +270,97 @@ const prepareLineChartData = (aggregatedData, label) => {
             <tr key={index}>
               <td>{item.timestamp}</td>
               <td>{item.label}</td>
-              <td>{item.firstname}</td>
-              <td>{item.ozip}</td>
-              <td>{item.dzip}</td>
-              <td>{item.movesize}</td>
-              <td>{item.movedte}</td>
-              <td>{item.notes}</td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.firstname}
+                    onChange={(e) => handleEditChange(e, 'firstname')}
+                    className='input'
+                  />
+                ) : (
+                  item.firstname
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.ozip || editableData.ocity || editableData.ostate}
+                    onChange={(e) => handleEditChange(e, 'origin')}
+                    className='input'
+                  />
+                ) : (
+                  item.ozip || item.ocity || item.ostate
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.dzip || editableData.dcity + ', ' + editableData.dstate}
+                    onChange={(e) => handleEditChange(e, 'destination')}
+                    className='input'
+                  />
+                ) : (
+                  item.dzip || item.dcity + ', ' + item.dstate
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.movesize}
+                    onChange={(e) => handleEditChange(e, 'movesize')}
+                    className='input'
+                  />
+                ) : (
+                  item.movesize
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.movedte}
+                    onChange={(e) => handleEditChange(e, 'movedte')}
+                    className='input'
+                  />
+                ) : (
+                  item.movedte
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.notes}
+                    onChange={(e) => handleEditChange(e, 'notes')}
+                    className='input'
+                  />
+                ) : (
+                  item.notes
+                )}
+              </td>
+              <td style={item.isBooked ? { backgroundColor: '#a8cc98', fontWeight: '600', textAlign: 'center', fontFamily: 'Montserrat, sans-serif' } : {}}>
+                {editRowId === item.id ? (
+                  <input
+                    type="checkbox"
+                    checked={editableData.isBookedEditable}
+                    onChange={(e) => setEditableData({ ...editableData, isBookedEditable: e.target.checked })}
+                    className='input'
+                  />
+                ) : (
+                  item.isBooked ? 'Booked' : ''
+                )}
+              </td>
+              <td>
+                {editRowId === item.id ? (
+                  <FontAwesomeIcon icon={faSave} onClick={handleUpdate} className='icon'/>
+                ) : (
+                  <FontAwesomeIcon icon={faEdit} onClick={() => handleEdit(item)} className='icon'/>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -228,6 +412,16 @@ const toggleLeadsData = () => {
   setIsExclusive(!isExclusive); // Toggle between exclusive and shared leads
   setCurrentChart(isExclusive ? 'shared' : 'exclusive');
   setCurrentLeadsData(isExclusive ? todaysSharedLeadsData : todaysExclusiveLeadsData);
+};
+
+const toggleBookedStatus = (leadId) => {
+  const updatedLeads = currentLeadsData.map(lead => {
+    if (lead.id === leadId) {
+      return { ...lead, isBooked: !lead.isBooked };
+    }
+    return lead;
+  });
+  setCurrentLeadsData(updatedLeads);
 };
 
   const exclusiveLeadsLineChartData = prepareLineChartData(todaysExclusiveLeadsData, 'Exclusive Leads', 'rgba(54, 162, 235, 0.5)');
