@@ -6,6 +6,8 @@ import VendorSearchBar from './../vendor-search-bar/VendorSearchBar';
 import { useVendor } from '../../services/VendorContext'
 import './BookedLeads.css'
 
+const API_URL = process.env.API_URL;
+
 const BookedLeads = () => {
   // Retrieve and parse user data from local storage
   const userString = localStorage.getItem('user');
@@ -24,30 +26,24 @@ const BookedLeads = () => {
           console.log('Waiting for user authentication...');
           return;
       }
-
-      // TODO use an env variable for all routes 
-      // api route route / for example https://vendor-api.safeshiphub.com
-      apiRoute = process.env.API_ROUTE 
-
-
-      let url = 'https://vendor-api.safeshiphub.com/api/';
-
+      
+      let apiUrl = API_URL
     // Adjust URL based on user role and selectedVendor
     if (user.role === 'vendor') {
         // For vendors, use their specific booked leads route
-        url += `vendors/booked-leads/${encodeURIComponent(user.username)}`;
+        apiUrl += `/vendors/booked-leads/${encodeURIComponent(user.username)}`;
     } else if (user.role === 'admin') {
         if (selectedVendor) {
             // For admin, when a vendor is selected, use the vendor-specific booked leads route
-            url += `vendors/booked-leads/${encodeURIComponent(selectedVendor)}`;
+            apiUrl += `/vendors/booked-leads/${encodeURIComponent(selectedVendor)}`;
         } else {
             // For admin, when no vendor is selected, use the admin route to get all booked leads
-            url += 'admin/booked-leads/';
+            apiUrl += '/admin/booked-leads/';
         }
     }
 
     try {
-      const response = await fetch(url, {
+      const response = await fetch(apiUrl, {
         headers: {
           'Authorization': `Bearer ${user.token}`,
         },
@@ -80,7 +76,7 @@ const BookedLeads = () => {
       const updatedData = { ...editableData, isBooked: editableData.isBookedEditable };
       delete updatedData.isBookedEditable;
   
-      const response = await fetch(`https://vendor-api.safeshiphub.com/api/admin/update-lead/${editRowId}`, {
+      const response = await fetch(`${API_URL}/admin/update-lead/${editRowId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

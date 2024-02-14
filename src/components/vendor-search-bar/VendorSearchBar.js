@@ -4,6 +4,8 @@ import { faSearch, faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import './VendorSearchBar.css';
 import { useVendor } from '../../services/VendorContext'; // Ensure the path is correct
 
+const API_URL = process.env.API_URL;
+
 const VendorSearchBar = () => {
   // Retrieve and parse user data from local storage
   const userString = localStorage.getItem('user');
@@ -17,7 +19,7 @@ const VendorSearchBar = () => {
   useEffect(() => {
     const fetchVendors = async () => {
       try {
-        const response = await fetch('https://vendor-api.safeshiphub.com/api/admin/vendors', {
+        const response = await fetch(`${API_URL}/admin/vendors`, {
           headers: { 'Authorization': `Bearer ${user.token}` },
         });
         if (!response.ok) {

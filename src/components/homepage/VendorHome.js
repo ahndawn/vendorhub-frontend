@@ -8,6 +8,10 @@ import { faEllipsisV, faSave, faEdit, faSearch } from '@fortawesome/free-solid-s
 import VendorSearchBar from './../vendor-search-bar/VendorSearchBar';
 import { useVendor } from '../../services/VendorContext';
 
+
+const API_URL = process.env.API_URL;
+
+
 const VendorHome = () => {
   const [vendorLeadsData, setVendorLeadsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +70,7 @@ const handleEdit = (item) => {
 
 const handleUpdate = async () => {
   try {
-    const response = await fetch(`https://vendor-api.safeshiphub.com/api/vendors/update-lead/${editRowId}`, {
+    const response = await fetch(`${API_URL}/vendors/update-lead/${editRowId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -96,7 +100,7 @@ const fetchVendorLeads = async () => {
     return;
   }
 
-  let url = `https://vendor-api.safeshiphub.com/api/vendors/leads`;
+  let url = `${API_URL}/vendors/leads`;
 
   // Adjust URL based on user role and selectedVendor from context
   if (user.role === 'vendor') {

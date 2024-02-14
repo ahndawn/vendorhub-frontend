@@ -5,9 +5,9 @@ import './AdminHome.css';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'; 
 import { Pagination } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
-import { MdImportExport } from 'react-icons/md';
+import { faEllipsisV, faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
 
+const API_URL = process.env.API_URL;
 
 const AdminHome = () => {
 
@@ -39,7 +39,7 @@ const AdminHome = () => {
 
   const fetchBookedLeads = async () => {
     try {
-      const response = await fetch('https://vendor-api.safeshiphub.com/api/admin/booked-leads', {
+      const response = await fetch(`${API_URL}/admin/booked-leads`, {
         headers: {
           'Authorization': `Bearer ${user.token}`
         }
@@ -59,7 +59,7 @@ const AdminHome = () => {
 
   const updateBookedStatusFromSheet = async () => {
     try {
-      const response = await fetch('https://vendor-api.safeshiphub.com/api/admin/update-lead-booked-status', {
+      const response = await fetch(`${API_URL}/admin/update-lead-booked-status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -77,20 +77,12 @@ const AdminHome = () => {
     }
   };
 
-  // Function to handle importing booked leads with confirmation
-  const handleImportBookedLeads = async () => {
-    const isConfirmed = window.confirm("Are you sure you want to import booked leads?");
-    if (isConfirmed) {
-      await updateBookedStatusFromSheet();
-    }
-  };
-
   const handleUpdate = async () => {
     try {
       const updatedData = { ...editableData, isBooked: editableData.isBookedEditable };
       delete updatedData.isBookedEditable;
   
-      const response = await fetch(`https://vendor-api.safeshiphub.com/api/admin/update-lead/${editRowId}`, {
+      const response = await fetch(`${API_URL}/admin/update-lead/${editRowId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -183,12 +175,9 @@ useEffect(() => {
         'Authorization': `Bearer ${user.token}`
       };
 
-  
-      // const leadsResponse = await fetch(`http://localhost:4000/api/admin/${currentChart}-leads`, { headers });
-      // const leadsData = await leadsResponse.json();
-
-      const response = await fetch(`https://vendor-api.safeshiphub.com/api/admin/${currentChart}-leads`, { headers });
-      const data = await response.json();
+      // Fetch leads data, which now includes the isBooked status
+      const leadsResponse = await fetch(`${API_URL}/admin/${currentChart}-leads`, { headers });
+      const leadsData = await leadsResponse.json();
 
       setCurrentLeadsData(leadsData);
       setTotalPages(Math.ceil(leadsData.length / leadsPerPage));
@@ -261,7 +250,7 @@ useEffect(() => {
             <th>Move Size</th>
             <th>Move Date</th>
             <th>ICID</th>
-            <th>Status <MdImportExport onClick={handleImportBookedLeads} style={{ cursor: 'pointer', color: 'rgb(42, 115, 252)'}} title='Import Booked Leads'/></th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -456,6 +445,10 @@ const toggleBookedStatus = (leadId) => {
         <div className="admin-dashboard-wrapper">
           <div className="admin-dashboard">
           <h2>{isExclusive ? "Exclusive" : "Shared"} Leads for {todaysDate()}</h2>
+          
+          <button onClick={updateBookedStatusFromSheet} className="update-booked-status-button">
+            Update Booked Status from Sheet
+          </button>
     
           <div className="charts-carousel">
           {isExclusive && (

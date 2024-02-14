@@ -1,7 +1,7 @@
 // src/services/userService.js
 import axios from 'axios';
 
-const API_URL = 'https://vendor-api.safeshiphub.com/api/users/';
+const API_URL = `${process.env.API_URL}/users/`;
 
 // Register user
 const register = async (userData) => {
