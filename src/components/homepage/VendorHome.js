@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Pie, Line } from 'react-chartjs-2';
 import Chart from 'chart.js/auto';
 import './VendorHome.css';
+import VendorTable from '../leads-tables/VendorTable';
 import { Pagination } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisV, faSave, faEdit, faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -39,6 +40,7 @@ const handleMonthChange = (field, value) => {
   }
 };
 
+
   const handleFilter = () => {
     // Trigger the data fetching based on the selected filters
     fetchVendorLeads();
@@ -66,6 +68,13 @@ const handleEditChange = (e, field) => {
 const handleEdit = (item) => {
   setEditRowId(item.id);
   setEditableData({ ...item });
+};
+
+const handleBookedStatusChange = (id, isChecked) => {
+  setEditableData(prevData => ({
+    ...prevData,
+    isBookedEditable: isChecked
+  }));
 };
 
 const handleUpdate = async () => {
@@ -372,115 +381,6 @@ const paginate = pageNumber => setCurrentPage(pageNumber);
     return null;
   };
 
-
-const renderTable = (data) => {
-  if (isLoading) {
-    return <div>Loading Data...</div>;
-  }
-
-  if (!Array.isArray(data) || data.length === 0) {
-    return <div>No data available for this user.</div>;
-  }
-  
-
-  return (
-    <table className="table table-striped table-hover">
-      <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>Name</th>
-          <th>Origin</th>
-          <th>Destination</th>
-          <th>Move Size</th>
-          <th>Move Date</th>
-          <th>ICID</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((item, index) => (
-          <tr key={index}>
-              <td>{item.timestamp}</td>
-              <td>
-                {editRowId === item.id ? (
-                  <input
-                    type="text"
-                    value={editableData.firstname}
-                    onChange={(e) => handleEditChange(e, 'firstname')}
-                  />
-                ) : (
-                  item.firstname
-                )}
-              </td>
-              <td>
-                {editRowId === item.id ? (
-                  <input
-                    type="text"
-                    value={editableData.ozip || editableData.ocity || editableData.ostate}
-                    onChange={(e) => handleEditChange(e, 'origin')}
-                  />
-                ) : (
-                  item.ozip || item.ocity || item.ostate
-                )}
-              </td>
-              <td>
-                {editRowId === item.id ? (
-                  <input
-                    type="text"
-                    value={editableData.dzip || editableData.dcity + ', ' + editableData.dstate}
-                    onChange={(e) => handleEditChange(e, 'destination')}
-                  />
-                ) : (
-                  item.dzip || item.dcity + ', ' + item.dstate
-                )}
-              </td>
-              <td>
-                {editRowId === item.id ? (
-                  <input
-                    type="text"
-                    value={editableData.movesize}
-                    onChange={(e) => handleEditChange(e, 'movesize')}
-                  />
-                ) : (
-                  item.movesize
-                )}
-              </td>
-              <td>
-                {editRowId === item.id ? (
-                  <input
-                    type="text"
-                    value={editableData.movedte}
-                    onChange={(e) => handleEditChange(e, 'movedte')}
-                  />
-                ) : (
-                  item.movedte
-                )}
-              </td>
-              <td>
-                {editRowId === item.id ? (
-                  <input
-                    type="text"
-                    value={editableData.notes}
-                    onChange={(e) => handleEditChange(e, 'notes')}
-                  />
-                ) : (
-                  item.notes
-                )}
-              </td>
-              <td>
-                {editRowId === item.id ? (
-                  <FontAwesomeIcon icon={faSave} onClick={handleUpdate} className='icon'/>
-                ) : (
-                  <FontAwesomeIcon icon={faEdit} onClick={() => handleEdit(item)} className='icon'/>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
-  };
-
 // Pagination logic
 const maxPagesToShow = 5;
 const halfMaxPages = Math.floor(maxPagesToShow / 2);
@@ -505,8 +405,16 @@ return (
       </h2>
       {renderCharts()}
       <div className="tables-container">
-        {renderTable(currentLeads)}
-      </div>
+      <VendorTable
+        data={currentLeads}
+        onEdit={handleEdit}
+        onSave={handleUpdate}
+        editRowId={editRowId}
+        editableData={editableData}
+        handleEditChange={handleEditChange}
+        handleBookedStatusChange={handleBookedStatusChange}
+      />
+    </div>
       <br></br>
       <div className="d-flex justify-content-center">
         <Pagination>

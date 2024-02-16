@@ -10,6 +10,7 @@ import Profile from './components/users/Profile';
 import AdminHome from './components/homepage/AdminHome';
 import VendorHome from './components/homepage/VendorHome';
 import BookedLeads from './components/booked-leads/BookedLeads';
+import DuplicateLeads from './components/duplicate-leads/DuplicateLeads';
 import useUserAuth from './services/userAuth';
 
 const App = () => {
@@ -67,6 +68,7 @@ const MainContent = () => {
         <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
         <Route path="/vendors" element={<VendorHome />}/>
         <Route path="/booked-deals" element={<BookedLeads />}/>
+        <Route path="/duplicate-bad-leads" element={<DuplicateLeads />}/>
       </Routes>
     </main>
   );

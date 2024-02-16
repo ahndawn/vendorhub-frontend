@@ -4,6 +4,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faSave } from '@fortawesome/free-solid-svg-icons';
 import VendorSearchBar from './../vendor-search-bar/VendorSearchBar';
 import { useVendor } from '../../services/VendorContext'
+import AdminTable from '../leads-tables/AdminTable';
+import VendorTable from '../leads-tables/VendorTable';
 import './BookedLeads.css'
 
 const API_URL = process.env.API_URL;
@@ -58,14 +60,21 @@ const BookedLeads = () => {
     }
   };
 
-  useEffect(() => {
-    fetchBookedLeads();
-  }, [selectedVendor]);
-
   const handleEditChange = (e, field) => {
     setEditableData({ ...editableData, [field]: e.target.value });
   };
 
+  useEffect(() => {
+    fetchBookedLeads();
+  }, [selectedVendor]);
+
+  const handleBookedStatusChange = (id, isChecked) => {
+    setEditableData(prevData => ({
+      ...prevData,
+      isBookedEditable: isChecked
+    }));
+  };
+  
   const handleEdit = (lead) => {
     setEditRowId(lead.id);
     setEditableData({ ...lead, isBookedEditable: lead.isBooked });
@@ -110,129 +119,32 @@ const BookedLeads = () => {
 
   return (
     <div className="booked-leads-container">
-            {user.role === 'admin' && <VendorSearchBar />}
-            <h2>
-              {user.role === 'vendor' ? `${user.username}'s Booked Leads` : `${selectedVendor ? `${selectedVendor}'s Booked Leads` : "Booked Leads"}`}
-            </h2>
-            <div className="tables-container">
-            {leads.length > 0 ? (
-                <table className="table table-striped table-hover">
-          <thead>
-            <tr>
-              <th>Timestamp</th>
-              {user.role === 'admin' && !selectedVendor && <th>Vendor</th>}
-              <th>Name</th>
-              <th>Origin</th>
-              <th>Destination</th>
-              <th>Move Size</th>
-              <th>Move Date</th>
-              <th>ICID</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentLeads.map((item, index) => (
-              <tr key={index}>
-                <td>{item.timestamp}</td>
-                {user.role === 'admin' && !selectedVendor && <td>{item.label}</td>}
-                <td>
-                  {editRowId === item.id ? (
-                    <input
-                      type="text"
-                      value={editableData.firstname}
-                      onChange={(e) => handleEditChange(e, 'firstname')}
-                      className='input'
-                    />
-                  ) : (
-                    item.firstname
-                  )}
-                </td>
-                <td>
-                  {editRowId === item.id ? (
-                    <input
-                      type="text"
-                      value={editableData.ozip || editableData.ocity || editableData.ostate}
-                      onChange={(e) => handleEditChange(e, 'origin')}
-                      className='input'
-                    />
-                  ) : (
-                    item.ozip || item.ocity || item.ostate
-                  )}
-                </td>
-                <td>
-                  {editRowId === item.id ? (
-                    <input
-                      type="text"
-                      value={editableData.dzip || editableData.dcity + ', ' + editableData.dstate}
-                      onChange={(e) => handleEditChange(e, 'destination')}
-                      className='input'
-                    />
-                  ) : (
-                    item.dzip || item.dcity + ', ' + item.dstate
-                  )}
-                </td>
-                <td>
-                  {editRowId === item.id ? (
-                    <input
-                      type="text"
-                      value={editableData.movesize}
-                      onChange={(e) => handleEditChange(e, 'movesize')}
-                      className='input'
-                    />
-                  ) : (
-                    item.movesize
-                  )}
-                </td>
-                <td>
-                  {editRowId === item.id ? (
-                    <input
-                      type="text"
-                      value={editableData.movedte}
-                      onChange={(e) => handleEditChange(e, 'movedte')}
-                      className='input'
-                    />
-                  ) : (
-                    item.movedte
-                  )}
-                </td>
-                <td>
-                  {editRowId === item.id ? (
-                    <input
-                      type="text"
-                      value={editableData.notes}
-                      onChange={(e) => handleEditChange(e, 'notes')}
-                      className='input'
-                    />
-                  ) : (
-                    item.notes
-                  )}
-                </td>
-                <td style={item.isBooked ? { backgroundColor: '#a8cc98', fontWeight: '600', textAlign: 'center', fontFamily: 'Montserrat, sans-serif' } : {}}>
-                  {editRowId === item.id ? (
-                    <input
-                      type="checkbox"
-                      checked={editableData.isBookedEditable}
-                      onChange={(e) => setEditableData({ ...editableData, isBookedEditable: e.target.checked })}
-                    />
-                  ) : (
-                    item.isBooked ? 'Booked' : ''
-                  )}
-                </td>
-                <td>
-                  {editRowId === item.id ? (
-                    <FontAwesomeIcon icon={faSave} onClick={handleUpdate} className='icon'/>
-                  ) : (
-                    <FontAwesomeIcon icon={faEdit} onClick={() => handleEdit(item)} className='icon'/>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {user.role === 'admin' && <VendorSearchBar />}
+      <h2>
+        {user.role === 'vendor' ? `${user.username}'s Booked Leads` : `${selectedVendor ? `${selectedVendor}'s Booked Leads` : "Booked Leads"}`}
+      </h2>
+      <div className="tables-container">
+        {user.role === 'admin' ? (
+          <AdminTable
+            data={leads}
+            onEdit={handleEdit}
+            onSave={handleUpdate}
+            editRowId={editRowId}
+            editableData={editableData}
+            handleEditChange={handleEditChange}
+            handleBookedStatusChange={handleBookedStatusChange}
+          />
         ) : (
-          <div style={{textAlign:'center'}}>No Booked Leads for this Vendor.</div>
-          )}
+          <VendorTable
+            data={leads}
+            onEdit={handleEdit}
+            onSave={handleUpdate}
+            editRowId={editRowId}
+            editableData={editableData}
+            handleEditChange={handleEditChange}
+            handleBookedStatusChange={handleBookedStatusChange}
+          />
+        )}
       </div>
     </div>
   );

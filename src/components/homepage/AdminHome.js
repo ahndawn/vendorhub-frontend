@@ -4,8 +4,7 @@ import Chart from 'chart.js/auto';
 import './AdminHome.css';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'; 
 import { Pagination } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV, faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
+import AdminTable from '../leads-tables/AdminTable';
 
 const API_URL = process.env.API_URL;
 
@@ -106,14 +105,12 @@ const AdminHome = () => {
     }
   };
 
-  // Declare state and setter functions for all your data
   const [todaysExclusiveLeadsData, setTodaysExclusiveLeadsData] = useState([]);
   const [todaysSharedLeadsData, setTodaysSharedLeadsData] = useState([]);
   const [exclusiveLabelsData, setExclusiveLabelsData] = useState([]);
   const [sharedLabelsData, setSharedLabelsData] = useState([]);
   const [exclusiveGronatData, setExclusiveGronatData] = useState({ labels: [], datasets: [{ data: [] }] });
   const [sharedGronatData, setSharedGronatData] = useState({ labels: [], datasets: [{ data: [] }] });;
-  const [combinedLeadsData, setCombinedLeadsData] = useState([]);
   const [currentLeadsData, setCurrentLeadsData] = useState([]); 
   const [isExclusive, setIsExclusive] = useState(true);
   
@@ -232,130 +229,6 @@ useEffect(() => {
   }
 
 
-  const renderTable = (data) => {
-    if (!Array.isArray(data)) {
-      console.error('Expected an array for table data, received:', data);
-      return <div>No data available.</div>;
-    }
-  
-    return (
-      <table className="table table-striped table-hover">
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Vendor</th>
-            <th>Name</th>
-            <th>Origin</th>
-            <th>Destination</th>
-            <th>Move Size</th>
-            <th>Move Date</th>
-            <th>ICID</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item, index) => (
-            <tr key={index}>
-              <td>{item.timestamp}</td>
-              <td>{item.label}</td>
-              <td>
-                {editRowId === item.id ? (
-                  <input
-                    type="text"
-                    value={editableData.firstname}
-                    onChange={(e) => handleEditChange(e, 'firstname')}
-                    className='input'
-                  />
-                ) : (
-                  item.firstname
-                )}
-              </td>
-              <td>
-                {editRowId === item.id ? (
-                  <input
-                    type="text"
-                    value={editableData.ozip || editableData.ocity || editableData.ostate}
-                    onChange={(e) => handleEditChange(e, 'origin')}
-                    className='input'
-                  />
-                ) : (
-                  item.ozip || item.ocity || item.ostate
-                )}
-              </td>
-              <td>
-                {editRowId === item.id ? (
-                  <input
-                    type="text"
-                    value={editableData.dzip || editableData.dcity + ', ' + editableData.dstate}
-                    onChange={(e) => handleEditChange(e, 'destination')}
-                    className='input'
-                  />
-                ) : (
-                  item.dzip || item.dcity + ', ' + item.dstate
-                )}
-              </td>
-              <td>
-                {editRowId === item.id ? (
-                  <input
-                    type="text"
-                    value={editableData.movesize}
-                    onChange={(e) => handleEditChange(e, 'movesize')}
-                    className='input'
-                  />
-                ) : (
-                  item.movesize
-                )}
-              </td>
-              <td>
-                {editRowId === item.id ? (
-                  <input
-                    type="text"
-                    value={editableData.movedte}
-                    onChange={(e) => handleEditChange(e, 'movedte')}
-                    className='input'
-                  />
-                ) : (
-                  item.movedte
-                )}
-              </td>
-              <td>
-                {editRowId === item.id ? (
-                  <input
-                    type="text"
-                    value={editableData.notes}
-                    onChange={(e) => handleEditChange(e, 'notes')}
-                    className='input'
-                  />
-                ) : (
-                  item.notes
-                )}
-              </td>
-              <td style={item.isBooked ? { backgroundColor: '#a8cc98', fontWeight: '600', textAlign: 'center', fontFamily: 'Montserrat, sans-serif' } : {}}>
-                {editRowId === item.id ? (
-                  <input
-                    type="checkbox"
-                    checked={editableData.isBookedEditable}
-                    onChange={(e) => setEditableData({ ...editableData, isBookedEditable: e.target.checked })}
-                    className='input'
-                  />
-                ) : (
-                  item.isBooked ? 'Booked' : ''
-                )}
-              </td>
-              <td>
-                {editRowId === item.id ? (
-                  <FontAwesomeIcon icon={faSave} onClick={handleUpdate} className='icon'/>
-                ) : (
-                  <FontAwesomeIcon icon={faEdit} onClick={() => handleEdit(item)} className='icon'/>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
-  };
 
   // Determine the range of pages to display
   const maxPagesToShow = 5;
@@ -397,6 +270,13 @@ useEffect(() => {
     setCurrentLeadsData(newChart === 'exclusive' ? todaysExclusiveLeadsData : todaysSharedLeadsData);
 };
 
+const handleBookedStatusChange = (id, isChecked) => {
+  setEditableData(prevData => ({
+    ...prevData,
+    isBookedEditable: isChecked
+  }));
+};
+
 const toggleLeadsData = () => {
   setIsExclusive(!isExclusive); // Toggle between exclusive and shared leads
   setCurrentChart(isExclusive ? 'shared' : 'exclusive');
@@ -413,10 +293,6 @@ const toggleBookedStatus = (leadId) => {
   setCurrentLeadsData(updatedLeads);
 };
 
-  const exclusiveLeadsLineChartData = prepareLineChartData(todaysExclusiveLeadsData, 'Exclusive Leads', 'rgba(54, 162, 235, 0.5)');
-  const sharedLeadsLineChartData = prepareLineChartData(todaysSharedLeadsData, 'Shared Leads', 'rgba(255, 99, 132, 0.5)');
-  const exclusiveLeadsPieChartData = preparePieChartData(todaysExclusiveLeadsData);
-  const sharedLeadsPieChartData = preparePieChartData(todaysSharedLeadsData);
 
       // Chart options for displaying labels inside the chart
       const chartOptions = {
@@ -495,9 +371,17 @@ const toggleBookedStatus = (leadId) => {
               </div>
             </div>
 
-            <div className="tables-container">
-          {renderTable(currentLeads)}
-        </div>
+          <div className="tables-container">
+          <AdminTable
+            data={currentLeads}
+            onEdit={handleEdit}
+            onSave={handleUpdate}
+            editRowId={editRowId}
+            editableData={editableData}
+            handleEditChange={handleEditChange}
+            handleBookedStatusChange={handleBookedStatusChange}
+          />
+            </div>
         <br></br>
         <div className="d-flex justify-content-center">
           {renderPagination()}
