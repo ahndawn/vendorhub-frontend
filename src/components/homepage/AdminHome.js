@@ -58,7 +58,7 @@ const AdminHome = () => {
 
   const updateBookedStatusFromSheet = async () => {
     try {
-      const response = await fetch(`${API_URL}/admin/update-lead-booked-status`, {
+      const response = await fetch(`${API_URL}/update/update-lead-booked-status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ const AdminHome = () => {
       const updatedData = { ...editableData, isBooked: editableData.isBookedEditable };
       delete updatedData.isBookedEditable;
   
-      const response = await fetch(`${API_URL}/admin/update-lead/${editRowId}`, {
+      const response = await fetch(`${API_URL}/update/update-lead/${editRowId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

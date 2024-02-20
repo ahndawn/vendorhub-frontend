@@ -85,7 +85,7 @@ const BookedLeads = () => {
       const updatedData = { ...editableData, isBooked: editableData.isBookedEditable };
       delete updatedData.isBookedEditable;
   
-      const response = await fetch(`${API_URL}/admin/update-lead/${editRowId}`, {
+      const response = await fetch(`${API_URL}/update/update-lead/${editRowId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -124,26 +124,30 @@ const BookedLeads = () => {
         {user.role === 'vendor' ? `${user.username}'s Booked Leads` : `${selectedVendor ? `${selectedVendor}'s Booked Leads` : "Booked Leads"}`}
       </h2>
       <div className="tables-container">
-        {user.role === 'admin' ? (
-          <AdminTable
-            data={leads}
-            onEdit={handleEdit}
-            onSave={handleUpdate}
-            editRowId={editRowId}
-            editableData={editableData}
-            handleEditChange={handleEditChange}
-            handleBookedStatusChange={handleBookedStatusChange}
-          />
+        {leads.length > 0 ? (
+          user.role === 'admin' ? (
+            <AdminTable
+              data={leads}
+              onEdit={handleEdit}
+              onSave={handleUpdate}
+              editRowId={editRowId}
+              editableData={editableData}
+              handleEditChange={handleEditChange}
+              handleBookedStatusChange={handleBookedStatusChange}
+            />
+          ) : (
+            <VendorTable
+              data={leads}
+              onEdit={handleEdit}
+              onSave={handleUpdate}
+              editRowId={editRowId}
+              editableData={editableData}
+              handleEditChange={handleEditChange}
+              handleBookedStatusChange={handleBookedStatusChange}
+            />
+          )
         ) : (
-          <VendorTable
-            data={leads}
-            onEdit={handleEdit}
-            onSave={handleUpdate}
-            editRowId={editRowId}
-            editableData={editableData}
-            handleEditChange={handleEditChange}
-            handleBookedStatusChange={handleBookedStatusChange}
-          />
+          <p className="no-data-message">No Booked Leads found.</p>
         )}
       </div>
     </div>

@@ -3,6 +3,7 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
+import './Table.css';
 
 const VendorTable = ({ data, onEdit, onSave, editRowId, editableData, handleEditChange, handleBookedStatusChange }) => {
   return (
@@ -16,6 +17,7 @@ const VendorTable = ({ data, onEdit, onSave, editRowId, editableData, handleEdit
           <th>Move Size</th>
           <th>Move Date</th>
           <th>ICID</th>
+          <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -29,6 +31,7 @@ const VendorTable = ({ data, onEdit, onSave, editRowId, editableData, handleEdit
                     type="text"
                     value={editableData.firstname}
                     onChange={(e) => handleEditChange(e, 'firstname')}
+                    className='input'
                   />
                 ) : (
                   item.firstname
@@ -40,6 +43,7 @@ const VendorTable = ({ data, onEdit, onSave, editRowId, editableData, handleEdit
                     type="text"
                     value={editableData.ozip || editableData.ocity || editableData.ostate}
                     onChange={(e) => handleEditChange(e, 'origin')}
+                    className='input'
                   />
                 ) : (
                   item.ozip || item.ocity || item.ostate
@@ -51,6 +55,7 @@ const VendorTable = ({ data, onEdit, onSave, editRowId, editableData, handleEdit
                     type="text"
                     value={editableData.dzip || editableData.dcity + ', ' + editableData.dstate}
                     onChange={(e) => handleEditChange(e, 'destination')}
+                    className='input'
                   />
                 ) : (
                   item.dzip || item.dcity + ', ' + item.dstate
@@ -62,6 +67,7 @@ const VendorTable = ({ data, onEdit, onSave, editRowId, editableData, handleEdit
                     type="text"
                     value={editableData.movesize}
                     onChange={(e) => handleEditChange(e, 'movesize')}
+                    className='input'
                   />
                 ) : (
                   item.movesize
@@ -73,6 +79,7 @@ const VendorTable = ({ data, onEdit, onSave, editRowId, editableData, handleEdit
                     type="text"
                     value={editableData.movedte}
                     onChange={(e) => handleEditChange(e, 'movedte')}
+                    className='input'
                   />
                 ) : (
                   item.movedte
@@ -84,9 +91,22 @@ const VendorTable = ({ data, onEdit, onSave, editRowId, editableData, handleEdit
                     type="text"
                     value={editableData.notes}
                     onChange={(e) => handleEditChange(e, 'notes')}
+                    className='input'
                   />
                 ) : (
                   item.notes
+                )}
+              </td>
+              <td style={item.isBooked ? { backgroundColor: '#a8cc98', fontWeight: '600', textAlign: 'center', fontFamily: 'Montserrat, sans-serif' } : {}}>
+                {editRowId === item.id ? (
+                  <input
+                    type="checkbox"
+                    checked={editableData.isBookedEditable}
+                    onChange={(e) => handleBookedStatusChange(item.id, e.target.checked)}
+                    className='input'
+                    />
+                ) : (
+                  item.isBooked ? 'Booked' : ''
                 )}
               </td>
               <td>

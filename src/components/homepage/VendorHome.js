@@ -60,47 +60,60 @@ const userString = localStorage.getItem('user');
 const user = userString ? JSON.parse(userString) : null;
 
 
-// UPDATE handlers for updating information in tables
-const handleEditChange = (e, field) => {
-  setEditableData({ ...editableData, [field]: e.target.value });
-};
+  // UPDATE INFORMATION ON TABLE
+  const handleEditChange = (e, field) => {
+    setEditableData({ ...editableData, [field]: e.target.value });
+  };
 
-const handleEdit = (item) => {
-  setEditRowId(item.id);
-  setEditableData({ ...item });
-};
+  const handleEdit = (item) => {
+    setEditRowId(item.id);
+    setEditableData({ ...item, isBookedEditable: item.isBooked });
+  };
 
-const handleBookedStatusChange = (id, isChecked) => {
-  setEditableData(prevData => ({
-    ...prevData,
-    isBookedEditable: isChecked
-  }));
-};
-
-const handleUpdate = async () => {
-  try {
-    const response = await fetch(`${API_URL}/vendors/update-lead/${editRowId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}`
-      },
-      body: JSON.stringify(editableData),
+  const handleBookedStatusChange = (id, isChecked) => {
+    setEditableData(prevData => {
+      const updatedData = { ...prevData, isBookedEditable: isChecked };
+      console.log("Updated Editable Data:", updatedData);
+      return updatedData;
     });
+  };
 
-    if (response.ok) {
-      const updatedData = vendorLeadsData.map((item) => 
-        item.id === editRowId ? { ...item, ...editableData } : item
-      );
-      setVendorLeadsData(updatedData);
-      setEditRowId(null);
-    } else {
-      console.error("Failed to update lead");
+  const handleUpdate = async () => {
+    const updatedData = {
+      ...editableData,
+      isBooked: editableData.isBookedEditable
+    };
+    console.log("Sending Update:", updatedData);
+  
+    try {
+      // Adjust the API call to use the admin route
+      const response = await fetch(`${API_URL}/update/update-lead/${editRowId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: JSON.stringify(updatedData),
+      });
+  
+      if (response.ok) {
+        // Optimistically update the UI immediately after sending the update
+        const updatedLeads = vendorLeadsData.map(lead => {
+          if (lead.id === editRowId) {
+            return { ...lead, ...updatedData, isBooked: updatedData.isBooked };
+          }
+          return lead;
+        });
+        setVendorLeadsData(updatedLeads);
+        setEditRowId(null);
+        setEditableData({});
+      } else {
+        console.error("Failed to update lead");
+      }
+    } catch (error) {
+      console.error("Error updating lead: ", error);
     }
-  } catch (error) {
-    console.error("Error updating lead: ", error);
-  }
-};
+  };
 
 const fetchVendorLeads = async () => {
   if (!user || !user.token) {
@@ -285,18 +298,33 @@ const paginate = pageNumber => setCurrentPage(pageNumber);
 
   // Render function for Line and Pie charts
   const renderCharts = () => {
-    if (isLoading) {
-      return <div>Loading chart data...</div>;
+   // Check if data is loading
+   if (isLoading) {
+    // Display "Loading data..." for vendors or when admin has selected a vendor
+    if (user.role === 'vendor' || (user.role === 'admin' && selectedVendor)) {
+      return <div className="chart-message">Loading data...</div>;
     }
-  
-    if (lineChartData.datasets.length > 0) {
-      const pieChartOptions = {
-        plugins: {
-          legend: {
-            display: false, // Hide the legend for the Pie chart
-          },
+  }
+
+  // For admin without a selected vendor, prompt to select a vendor
+  if (user.role === 'admin' && !selectedVendor) {
+    return <div className="chart-message">Please Select a Vendor</div>;
+  }
+
+  // If there's no data to display
+  if (vendorLeadsData.length === 0) {
+    return <div className="chart-message">Loading Data...</div>;
+  }
+
+  // If there's data, render the charts
+  if (lineChartData.datasets.length > 0) {
+    const pieChartOptions = {
+      plugins: {
+        legend: {
+          display: false, // Hide the legend for the Pie chart
         },
-      };
+      },
+    };
   
       return (
         <div className="charts-container">
@@ -401,21 +429,24 @@ return (
     <div className="vendor-dashboard">
       {user.role === 'admin' && <VendorSearchBar />}
       <h2>
-          {user.role === 'vendor' ? `${user.username}'s Leads` : `${selectedVendor ? `${selectedVendor}'s Leads` : "Vendor's Leads"}`}
+          {user.role === 'vendor' ? `${user.username}'s Leads` : `${selectedVendor ? `${selectedVendor}'s Leads` : ""}`}
       </h2>
       {renderCharts()}
-      <div className="tables-container">
-      <VendorTable
-        data={currentLeads}
-        onEdit={handleEdit}
-        onSave={handleUpdate}
-        editRowId={editRowId}
-        editableData={editableData}
-        handleEditChange={handleEditChange}
-        handleBookedStatusChange={handleBookedStatusChange}
-      />
-    </div>
+      {vendorLeadsData.length > 0 && (
+        <div className="tables-container">
+          <VendorTable
+            data={currentLeads}
+            onEdit={handleEdit}
+            onSave={handleUpdate}
+            editRowId={editRowId}
+            editableData={editableData}
+            handleEditChange={handleEditChange}
+            handleBookedStatusChange={handleBookedStatusChange}
+          />
+        </div>
+      )}
       <br></br>
+      {vendorLeadsData.length > 0 && (
       <div className="d-flex justify-content-center">
         <Pagination>
           <Pagination.First onClick={() => paginate(1)} disabled={currentPage === 1} />
@@ -425,6 +456,7 @@ return (
           <Pagination.Last onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} />
         </Pagination>
       </div>
+      )}
       <br></br>
     </div>
   </div>
