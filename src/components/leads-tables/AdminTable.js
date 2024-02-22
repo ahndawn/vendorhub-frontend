@@ -13,6 +13,7 @@ const AdminTable = ({ data, onEdit, onSave, editRowId, editableData, handleEditC
           <th>Timestamp</th>
           <th>Vendor</th>
           <th>Name</th>
+          <th>Phone</th>
           <th>Origin</th>
           <th>Destination</th>
           <th>Move Size</th>
@@ -37,6 +38,18 @@ const AdminTable = ({ data, onEdit, onSave, editRowId, editableData, handleEditC
                   />
                 ) : (
                   item.firstname
+                )}
+              </td>
+              <td className={item.isDuplicate ? 'duplicate-lead' : ''}>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.phone1}
+                    onChange={(e) => handleEditChange(e, 'phone1')}
+                    className='input'
+                  />
+                ) : (
+                  item.phone1
                 )}
               </td>
               <td>

@@ -147,7 +147,9 @@ const BookedLeads = () => {
             />
           )
         ) : (
-          <p className="no-data-message">No Booked Leads found.</p>
+          <div style={{ textAlign: 'center' }}>
+            No Booked Leads Found.
+          </div>
         )}
       </div>
     </div>

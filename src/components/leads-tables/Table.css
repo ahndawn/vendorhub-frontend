@@ -41,3 +41,8 @@
     border:rgb(42, 115, 252) solid 1px;
     max-width:100px !important
   }
+
+  .duplicate-lead {
+    background-color: rgb(255, 233, 110) !important;
+  }
+  
