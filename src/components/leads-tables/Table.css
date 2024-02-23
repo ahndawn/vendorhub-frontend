@@ -43,6 +43,10 @@
   }
 
   .duplicate-lead {
-    background-color: rgb(255, 233, 110) !important;
+    background-color: rgb(252, 238, 162) !important;
   }
+
+.invalid-lead {
+  color: rgb(179, 0, 0) !important;
+}
   

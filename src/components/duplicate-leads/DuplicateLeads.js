@@ -24,8 +24,20 @@ const DuplicateLeads = () => {
         console.log('User not defined, waiting for authentication...');
         return;
       }
+
+      let url = API_URL + '/leads/bad-leads'; // Adjusted for clarity
+
+      // Adjust URL based on user role and selectedVendor
+      if (user.role === 'vendor') {
+        // For vendors, fetch their specific bad leads
+        url += `?vendor=${encodeURIComponent(user.username)}`;
+      } else if (user.role === 'admin' && selectedVendor) {
+        // For admin with a selected vendor, fetch bad leads for that vendor
+        url += `?vendor=${encodeURIComponent(selectedVendor)}`;
+      }
+      // No additional parameters needed for admin without a selected vendor
+
       try {
-        const url = `${API_URL}/leads/get-duplicates`; // Removed pagination parameters
         const response = await axios.get(url, {
           headers: { Authorization: `Bearer ${user.token}` },
         });
@@ -44,11 +56,34 @@ const DuplicateLeads = () => {
 
   const handleEdit = (lead) => {
     setEditRowId(lead.id);
-    setEditableData(lead);
+    setEditableData({ ...lead, isBookedEditable: lead.isBooked });
   };
 
   const handleUpdate = async () => {
-    console.log('Update logic to be implemented');
+    try {
+      const updatedData = { ...editableData, isBooked: editableData.isBookedEditable };
+      delete updatedData.isBookedEditable; // Prepare data for update
+  
+      const response = await fetch(`${API_URL}/update/update-lead/${editRowId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: JSON.stringify(updatedData),
+      });
+  
+      if (response.ok) {
+        // Refresh local state to reflect the update
+        const updatedLeads = leads.map(lead => lead.id === editRowId ? { ...lead, ...updatedData } : lead);
+        setLeads(updatedLeads);
+        setEditRowId(null); // Reset edit state
+      } else {
+        console.error("Failed to update lead");
+      }
+    } catch (error) {
+      console.error("Error updating lead: ", error);
+    }
   };
 
   const markDuplicates = async () => {

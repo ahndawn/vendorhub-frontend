@@ -40,7 +40,7 @@ const AdminTable = ({ data, onEdit, onSave, editRowId, editableData, handleEditC
                   item.firstname
                 )}
               </td>
-              <td className={item.isDuplicate ? 'duplicate-lead' : ''}>
+              <td className={`${item.isDuplicate ? 'duplicate-lead' : ''} ${item.invalid ? 'invalid-lead' : ''}`}>
                 {editRowId === item.id ? (
                   <input
                     type="text"

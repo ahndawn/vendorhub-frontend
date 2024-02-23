@@ -12,6 +12,7 @@ const VendorTable = ({ data, onEdit, onSave, editRowId, editableData, handleEdit
         <tr>
           <th>Timestamp</th>
           <th>Name</th>
+          <th>Phone</th>
           <th>Origin</th>
           <th>Destination</th>
           <th>Move Size</th>
@@ -35,6 +36,18 @@ const VendorTable = ({ data, onEdit, onSave, editRowId, editableData, handleEdit
                   />
                 ) : (
                   item.firstname
+                )}
+              </td>
+              <td className={`${item.isDuplicate ? 'duplicate-lead' : ''} ${item.invalid ? 'invalid-lead' : ''}`}>
+                {editRowId === item.id ? (
+                  <input
+                    type="text"
+                    value={editableData.phone1}
+                    onChange={(e) => handleEditChange(e, 'phone1')}
+                    className='input'
+                  />
+                ) : (
+                  item.phone1
                 )}
               </td>
               <td>
