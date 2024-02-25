@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import './VendorSearchBar.css';
-import { useVendor } from '../../services/VendorContext'; // Ensure the path is correct
+import { useVendor } from '../../services/VendorContext';
 
 const API_URL = process.env.API_URL;
 
@@ -11,7 +11,7 @@ const VendorSearchBar = () => {
   const userString = localStorage.getItem('user');
   const user = userString ? JSON.parse(userString) : null;
 
-  const { setSelectedVendor: setGlobalSelectedVendor } = useVendor(); // Destructure and rename if needed
+  const { setSelectedVendor: setGlobalSelectedVendor } = useVendor(); 
 
   const [vendors, setVendors] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,7 +37,7 @@ const VendorSearchBar = () => {
   }, []);
 
   const handleSelectVendor = (event) => {
-    setGlobalSelectedVendor(event.target.value); // Update the global context
+    setGlobalSelectedVendor(event.target.value);
   };
 
   const handleSearchChange = (event) => {

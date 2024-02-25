@@ -1,12 +1,37 @@
 // AdminTable.js
-import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, { useState } from 'react';
 import { faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import './Table.css';
 
 const AdminTable = ({ data, onEdit, onSave, editRowId, editableData, handleEditChange, handleBookedStatusChange }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value.toLowerCase());
+  };
+
+  const filteredData = data.filter(item => {
+    // Convert all searchable fields to a single string and then check if it includes the search query
+    const searchData = `${item.timestamp} ${item.label} ${item.firstname} ${item.phone1} ${item.ozip} ${item.dzip} ${item.movesize} ${item.movedte} ${item.notes} ${item.isBooked ? 'booked' : ''} ${item.isDuplicate ? 'duplicate' : ''} ${item.invalid ? 'invalid' : ''}`.toLowerCase();
+    return searchData.includes(searchQuery);
+  });
+
   return (
+    <>
+    <div className="input-group" id='input-group'>
+          <span className="input-group-text" id='search-icon'>
+            <FontAwesomeIcon icon={faSearch} />
+          </span>
+      <input
+        type="text"
+        placeholder="Search..."
+        onChange={handleSearchChange}
+        className="search-input"
+      />
+    </div>
     <table className="table table-striped table-hover">
       <thead>
         <tr>
@@ -24,7 +49,7 @@ const AdminTable = ({ data, onEdit, onSave, editRowId, editableData, handleEditC
         </tr>
       </thead>
       <tbody>
-          {data.map((item, index) => (
+          {filteredData.map((item, index) => (
             <tr key={index}>
               <td>{item.timestamp}</td>
               <td>{item.label}</td>
@@ -34,7 +59,7 @@ const AdminTable = ({ data, onEdit, onSave, editRowId, editableData, handleEditC
                     type="text"
                     value={editableData.firstname}
                     onChange={(e) => handleEditChange(e, 'firstname')}
-                    className='input'
+                    className='input'm
                   />
                 ) : (
                   item.firstname
@@ -135,6 +160,7 @@ const AdminTable = ({ data, onEdit, onSave, editRowId, editableData, handleEditC
         ))}
       </tbody>
     </table>
+    </>
   );
 };
 
