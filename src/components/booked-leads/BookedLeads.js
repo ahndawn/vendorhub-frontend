@@ -16,6 +16,7 @@ const BookedLeads = () => {
   const user = userString ? JSON.parse(userString) : null;
 
   const [leads, setLeads] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [leadsPerPage] = useState(10);
   const [editRowId, setEditRowId] = useState(null);
@@ -24,6 +25,7 @@ const BookedLeads = () => {
   const { selectedVendor } = useVendor(); // Access the selected vendor from context
 
   const fetchBookedLeads = async () => {
+    setIsLoading(true);
       if (!user || !user.token) {
           console.log('Waiting for user authentication...');
           return;
@@ -57,6 +59,8 @@ const BookedLeads = () => {
       setLeads(data);
     } catch (error) {
       console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -124,7 +128,9 @@ const BookedLeads = () => {
         {user.role === 'vendor' ? `${user.username}'s Booked Leads` : `${selectedVendor ? `${selectedVendor}'s Booked Leads` : "Booked Leads"}`}
       </h2>
       <div className="tables-container">
-        {leads.length > 0 ? (
+        {isLoading ? (
+          <div style={{ textAlign: 'center' }}>Loading Data...</div>
+        ) : leads.length > 0 ? (
           user.role === 'admin' ? (
             <AdminTable
               data={leads}

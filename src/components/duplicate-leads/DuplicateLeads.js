@@ -14,12 +14,14 @@ const DuplicateLeads = () => {
   const user = userString ? JSON.parse(userString) : null;
 
   const [leads, setLeads] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [editRowId, setEditRowId] = useState(null);
   const [editableData, setEditableData] = useState({});
   const { selectedVendor } = useVendor();
 
   useEffect(() => {
     const fetchDuplicates = async () => {
+      setIsLoading(true);
       if (!user || !user.token) {
         console.log('User not defined, waiting for authentication...');
         return;
@@ -44,6 +46,8 @@ const DuplicateLeads = () => {
         setLeads(response.data.leads);
       } catch (error) {
         console.error('Error fetching duplicates:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -112,7 +116,9 @@ const DuplicateLeads = () => {
         {user.role === 'vendor' ? `${user.username}'s Bad Leads` : `${selectedVendor ? `${selectedVendor}'s Bad Leads` : "Bad Leads"}`}
       </h2>
       <div className="tables-container">
-        {leads.length > 0 ? (
+        {isLoading ? (
+          <div style={{ textAlign: 'center' }}>Loading Data...</div>
+        ) : leads.length > 0 ? (
           user.role === 'admin' ? (
             <AdminTable
               data={leads}
