@@ -3,11 +3,13 @@ import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import './Table.css';
 
 const VendorTable = ({ data, onEdit, onSave, editRowId, editableData, handleEditChange, handleBookedStatusChange }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value.toLowerCase());
@@ -37,7 +39,26 @@ const VendorTable = ({ data, onEdit, onSave, editRowId, editableData, handleEdit
         <tr>
           <th>Timestamp</th>
           <th>Name</th>
-          <th>Phone</th>
+          <th>
+            Phone
+            <div className="icon-dropdown-container" onMouseLeave={() => setShowDropdown(false)}>
+              <FontAwesomeIcon
+                icon={faQuestionCircle}
+                className="info-icon"
+                onMouseEnter={() => setShowDropdown(true)}
+              />
+              {showDropdown && (
+                <div className="status-dropdown">
+                  <div className="status-item">
+                    <span className="status-color duplicate"></span> Duplicate
+                  </div>
+                  <div className="status-item">
+                    <span className="status-text">Red</span> = Invalid
+                  </div>
+                </div>
+              )}
+            </div>
+          </th>
           <th>Origin</th>
           <th>Destination</th>
           <th>Move Size</th>

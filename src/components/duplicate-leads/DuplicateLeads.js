@@ -6,6 +6,7 @@ import VendorSearchBar from './../vendor-search-bar/VendorSearchBar';
 import { useVendor } from '../../services/VendorContext';
 import AdminTable from '../leads-tables/AdminTable';
 import VendorTable from '../leads-tables/VendorTable';
+import { Pagination } from 'react-bootstrap';
 
 const API_URL = process.env.API_URL;
 
@@ -18,32 +19,33 @@ const DuplicateLeads = () => {
   const [editRowId, setEditRowId] = useState(null);
   const [editableData, setEditableData] = useState({});
   const { selectedVendor } = useVendor();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [leadsPerPage] = useState(20);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     const fetchDuplicates = async () => {
       setIsLoading(true);
       if (!user || !user.token) {
         console.log('User not defined, waiting for authentication...');
+        setIsLoading(false);
         return;
       }
 
-      let url = API_URL + '/leads/bad-leads'; // Adjusted for clarity
+      let url = `${API_URL}/leads/bad-leads`;
 
-      // Adjust URL based on user role and selectedVendor
       if (user.role === 'vendor') {
-        // For vendors, fetch their specific bad leads
         url += `?vendor=${encodeURIComponent(user.username)}`;
       } else if (user.role === 'admin' && selectedVendor) {
-        // For admin with a selected vendor, fetch bad leads for that vendor
         url += `?vendor=${encodeURIComponent(selectedVendor)}`;
       }
-      // No additional parameters needed for admin without a selected vendor
 
       try {
         const response = await axios.get(url, {
           headers: { Authorization: `Bearer ${user.token}` },
         });
         setLeads(response.data.leads);
+        setTotalPages(Math.ceil(response.data.leads.length / leadsPerPage));
       } catch (error) {
         console.error('Error fetching duplicates:', error);
       } finally {
@@ -66,22 +68,19 @@ const DuplicateLeads = () => {
   const handleUpdate = async () => {
     try {
       const updatedData = { ...editableData, isBooked: editableData.isBookedEditable };
-      delete updatedData.isBookedEditable; // Prepare data for update
+      delete updatedData.isBookedEditable;
   
-      const response = await fetch(`${API_URL}/update/update-lead/${editRowId}`, {
-        method: 'PUT',
+      const response = await axios.put(`${API_URL}/update/update-lead/${editRowId}`, updatedData, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.token}`
+          'Authorization': `Bearer ${user.token}`,
         },
-        body: JSON.stringify(updatedData),
       });
   
-      if (response.ok) {
-        // Refresh local state to reflect the update
+      if (response.status === 200) {
         const updatedLeads = leads.map(lead => lead.id === editRowId ? { ...lead, ...updatedData } : lead);
         setLeads(updatedLeads);
-        setEditRowId(null); // Reset edit state
+        setEditRowId(null);
       } else {
         console.error("Failed to update lead");
       }
@@ -95,7 +94,7 @@ const DuplicateLeads = () => {
       await axios.post(`${API_URL}/leads/manually-mark-duplicates`, {}, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
-      fetchDuplicates(); // Re-fetch duplicates after marking
+      fetchDuplicates();
     } catch (error) {
       console.error('Error marking duplicates:', error);
     }
@@ -108,6 +107,36 @@ const DuplicateLeads = () => {
     }));
   };
 
+  // Determine the range of pages to display
+  const maxPagesToShow = 5;
+  const halfMaxPages = Math.floor(maxPagesToShow / 2);
+  const startPage = Math.max(1, currentPage - halfMaxPages);
+  const endPage = Math.min(totalPages, currentPage + halfMaxPages);
+
+  const renderPagination = () => {
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <Pagination.Item key={i} active={i === currentPage} onClick={() => paginate(i)}>
+          {i}
+        </Pagination.Item>
+      );
+    }
+
+    return (
+      <Pagination>
+        <Pagination.First onClick={() => paginate(1)} disabled={currentPage === 1} />
+        <Pagination.Prev onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} />
+        {pages}
+        <Pagination.Next onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} />
+        <Pagination.Last onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} />
+      </Pagination>
+    );
+  };
+
+  const indexOfLastLead = currentPage * leadsPerPage;
+  const indexOfFirstLead = indexOfLastLead - leadsPerPage;
+  const currentLeads = leads.slice(indexOfFirstLead, indexOfLastLead);
 
   return (
     <div className="duplicate-leads-container">
@@ -121,7 +150,7 @@ const DuplicateLeads = () => {
         ) : leads.length > 0 ? (
           user.role === 'admin' ? (
             <AdminTable
-              data={leads}
+              data={currentLeads}
               onEdit={handleEdit}
               onSave={handleUpdate}
               editRowId={editRowId}
@@ -131,7 +160,7 @@ const DuplicateLeads = () => {
             />
           ) : (
             <VendorTable
-              data={leads}
+              data={currentLeads}
               onEdit={handleEdit}
               onSave={handleUpdate}
               editRowId={editRowId}
@@ -140,17 +169,22 @@ const DuplicateLeads = () => {
               handleBookedStatusChange={handleBookedStatusChange}
             />
           )
+          
         ) : (
           <div style={{ textAlign: 'center' }}>
             No Bad Leads found.
-          <button className="btn btn-primary mt-3" onClick={markDuplicates}>
-            Check for Duplicates
-          </button>
+            <button className="btn btn-primary mt-3" onClick={markDuplicates}>
+              Check for Duplicates
+            </button>
           </div>
         )}
       </div>
+      <br></br>
+        <div className="d-flex justify-content-center">
+          {renderPagination()}
+        </div>
     </div>
   );
 };
 
-export default DuplicateLeads
+export default DuplicateLeads;
